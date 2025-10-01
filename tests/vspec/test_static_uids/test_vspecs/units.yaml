@@ -1,0 +1,25 @@
+mm:
+  unit: millimeter
+  definition: Distance measured in millimeters
+  quantity: distance
+  allowed-datatypes: [numeric]
+m:
+  unit: meter
+  definition: Distance measured in meters
+  quantity: distance
+  allowed-datatypes: [numeric]
+degrees/s:
+  unit: degree per second
+  definition: Angular speed measured in degrees per second
+  quantity: angular-speed
+  allowed-datatypes: [numeric]
+rpm:
+  unit: revolutions per minute
+  definition: Rotational speed measured in revolutions per minute
+  quantity: rotational-speed
+  allowed-datatypes: [numeric]
+percent:
+  unit: percent
+  definition: Relation measured in percent
+  quantity: relation
+  allowed-datatypes: [numeric]

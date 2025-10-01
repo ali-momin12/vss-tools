@@ -1,0 +1,81 @@
+name: Standard Build Check
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  workflow_dispatch:
+
+concurrency:
+  group: ci-check-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.10.6" # keep in sync with vss-tools/Pipfile!
+  CI: 1 # shall any script needs to know if it's running in the CI
+
+jobs:
+  buildtest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout vss-tools
+        uses: actions/checkout@v4
+      - name: Install apt dependencies
+        run: sudo apt install -y protobuf-compiler
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Mypy
+        run: uv run mypy src
+      - name: Run tests
+        run: uv run nox
+      - name: Test Binary Go Parser
+        run: |
+          cd binary/go_parser
+          go build -o gotestparser testparser.go
+          go list -m -json -buildvcs=false all
+
+  pypitest:
+    name: Test PyPI packaging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout vss-tools
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Test Pypi packaging
+        run: |
+          uv build
+      - name: Test that tools can be started
+        run: |
+          pip install dist/*.whl
+
+          # Verify that it works from any directory
+          mkdir /tmp/pypi_vss_test
+          cd /tmp/pypi_vss_test
+          # Just verify that we can start the tools
+          vspec --help
+          vspec export --help
+          vspec export apigear --help
+          vspec export csv --help
+          vspec export json --help
+          vspec export yaml --help
+          vspec export franca --help
+          vspec export ddsidl --help
+          vspec export protobuf --help
+          vspec export graphql --help
+      - name: Test that generated DDSIDL is correct
+        run: |
+          pip install cyclonedds
+          cd tests/ddsidl
+          vspec export ddsidl -u ../vspec/test_units.yaml -s test.vspec -o test.idl -q ../vspec/test_quantities.yaml
+          idlc -l py test.idl
+          grep -i A.String A/_test.py

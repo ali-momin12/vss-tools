@@ -1,0 +1,14 @@
+{
+  "A": {
+    "children": {
+      "Km": {
+        "datatype": "float",
+        "description": "Something in km.",
+        "type": "sensor",
+        "unit": "km"
+      }
+    },
+    "description": "Branch A.",
+    "type": "branch"
+  }
+}

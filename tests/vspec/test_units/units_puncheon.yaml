@@ -1,0 +1,5 @@
+puncheon:
+  unit: Puncheon
+  definition: Volume measure in puncheons (1 puncheon = 318 liters)
+  quantity: volume
+  allowed-datatypes: [numeric]

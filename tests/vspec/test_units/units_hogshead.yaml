@@ -1,0 +1,5 @@
+hogshead:
+  unit: Hogshead
+  definition: Volume measure in hogsheads (1 hogshead = 238 liters)
+  quantity: volume
+  allowed-datatypes: [numeric]

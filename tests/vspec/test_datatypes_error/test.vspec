@@ -1,0 +1,10 @@
+#
+A:
+  type: branch
+  description: Branch A.
+
+A.UInt7:
+  datatype: uint7
+  type: sensor
+  description: Oops, that datatype does not exist!
+  comment: If we specify unit as well then error message will be that non-standard datatypes cannot use unit

@@ -1,0 +1,385 @@
+{
+  "A": {
+    "children": {
+      "B": {
+        "children": {
+          "Row1": {
+            "children": {
+              "Left": {
+                "children": {
+                  "C": {
+                    "comment": "Original definition comment",
+                    "datatype": "int8",
+                    "description": "Signal A.B.C.",
+                    "my_id": "Varberg",
+                    "type": "sensor",
+                    "unit": "km"
+                  },
+                  "D": {
+                    "datatype": "int8",
+                    "description": "Signal A.B.D.",
+                    "type": "sensor",
+                    "unit": "km"
+                  }
+                },
+                "comment": "An example comment",
+                "description": "Branch A.B, instances defined in list",
+                "type": "branch"
+              },
+              "Right": {
+                "children": {
+                  "C": {
+                    "comment": "Original definition comment",
+                    "datatype": "int8",
+                    "description": "Signal A.B.C.",
+                    "my_id": "Narva",
+                    "type": "sensor",
+                    "unit": "km"
+                  },
+                  "D": {
+                    "datatype": "int8",
+                    "description": "Signal A.B.D.",
+                    "type": "sensor",
+                    "unit": "km"
+                  }
+                },
+                "comment": "An example comment",
+                "description": "Branch A.B, instances defined in list",
+                "type": "branch"
+              }
+            },
+            "comment": "An example comment",
+            "description": "Branch A.B, instances defined in list",
+            "type": "branch"
+          },
+          "Row2": {
+            "children": {
+              "Left": {
+                "children": {
+                  "C": {
+                    "comment": "Original definition comment",
+                    "datatype": "int8",
+                    "description": "Signal A.B.C.",
+                    "my_id": "Luetzen",
+                    "type": "sensor",
+                    "unit": "km"
+                  },
+                  "D": {
+                    "datatype": "int8",
+                    "description": "Signal A.B.D.",
+                    "type": "sensor",
+                    "unit": "km"
+                  },
+                  "E": {
+                    "datatype": "int8",
+                    "description": "Signal A.B.E.",
+                    "type": "sensor",
+                    "unit": "km"
+                  }
+                },
+                "comment": "An example comment",
+                "description": "Branch A.B, instances defined in list",
+                "type": "branch"
+              },
+              "Right": {
+                "children": {
+                  "C": {
+                    "comment": "Original definition comment",
+                    "datatype": "float",
+                    "description": "Muhaha",
+                    "my_id": "Leipzig",
+                    "type": "sensor",
+                    "unit": "km"
+                  },
+                  "D": {
+                    "datatype": "int8",
+                    "description": "Signal A.B.D.",
+                    "type": "sensor",
+                    "unit": "km"
+                  }
+                },
+                "comment": "An example comment",
+                "description": "Branch A.B, instances defined in list",
+                "type": "branch"
+              }
+            },
+            "comment": "An example comment",
+            "description": "Branch A.B, instances defined in list",
+            "type": "branch"
+          },
+          "Row3": {
+            "children": {
+              "Left": {
+                "children": {
+                  "C": {
+                    "comment": "Original definition comment",
+                    "datatype": "int8",
+                    "description": "Signal A.B.C.",
+                    "my_id": "Warschau",
+                    "type": "sensor",
+                    "unit": "km"
+                  },
+                  "D": {
+                    "datatype": "int8",
+                    "description": "Signal A.B.D.",
+                    "type": "sensor",
+                    "unit": "km"
+                  }
+                },
+                "comment": "An example comment",
+                "description": "Branch A.B, instances defined in list",
+                "type": "branch"
+              },
+              "Right": {
+                "children": {
+                  "C": {
+                    "comment": "Original definition comment",
+                    "datatype": "int8",
+                    "description": "Signal A.B.C.",
+                    "my_id": "Lund",
+                    "type": "sensor",
+                    "unit": "km"
+                  },
+                  "D": {
+                    "datatype": "int8",
+                    "description": "Signal A.B.D.",
+                    "type": "sensor",
+                    "unit": "km"
+                  }
+                },
+                "comment": "An example comment",
+                "description": "Branch A.B, instances defined in list",
+                "type": "branch"
+              }
+            },
+            "comment": "An example comment",
+            "description": "Branch A.B, instances defined in list",
+            "type": "branch"
+          }
+        },
+        "comment": "An example comment",
+        "description": "Branch A.B, instances defined in list",
+        "type": "branch"
+      },
+      "S": {
+        "children": {
+          "Front": {
+            "children": {
+              "Down": {
+                "children": {
+                  "T": {
+                    "datatype": "float",
+                    "description": "New description, shall not inherit anything, will be expanded",
+                    "type": "sensor",
+                    "unit": "km"
+                  }
+                },
+                "description": "Obligatorisch!!!",
+                "type": "branch"
+              },
+              "T": {
+                "comment": "Orig comment.",
+                "datatype": "float",
+                "description": "Changed description, shall inherit comment",
+                "type": "sensor",
+                "unit": "km"
+              },
+              "TT": {
+                "children": {
+                  "Left": {
+                    "children": {
+                      "TTT": {
+                        "children": {
+                          "T4": {
+                            "children": {
+                              "TTTTR": {
+                                "datatype": "float",
+                                "description": "A very nasty sensor",
+                                "type": "sensor"
+                              }
+                            },
+                            "description": "A very nasty branchzhs",
+                            "type": "branch"
+                          },
+                          "TTTT": {
+                            "datatype": "float",
+                            "description": "Some temperature.",
+                            "my_id": "Make sure description and unit is kept",
+                            "type": "sensor",
+                            "unit": "celsius"
+                          },
+                          "TTTY": {
+                            "datatype": "float",
+                            "description": "Auch some temperature.",
+                            "my_id": "Extended attribute",
+                            "type": "sensor",
+                            "unit": "celsius"
+                          }
+                        },
+                        "description": "Another branch level",
+                        "type": "branch"
+                      }
+                    },
+                    "description": "Second level instance",
+                    "type": "branch"
+                  },
+                  "Right": {
+                    "children": {
+                      "TTT": {
+                        "children": {
+                          "T4": {
+                            "children": {
+                              "TTTTR": {
+                                "comment": "hjdsjksdkj",
+                                "datatype": "float",
+                                "description": "A very nasty sensor",
+                                "type": "sensor"
+                              }
+                            },
+                            "description": "A very nasty branchzhs",
+                            "type": "branch"
+                          },
+                          "T5": {
+                            "children": {
+                              "TTTTZ": {
+                                "datatype": "float",
+                                "description": "Zome temperature.",
+                                "type": "sensor",
+                                "unit": "celsius"
+                              }
+                            },
+                            "description": "yet another branch",
+                            "type": "branch"
+                          },
+                          "TTTT": {
+                            "datatype": "float",
+                            "description": "Some temperature.",
+                            "type": "sensor",
+                            "unit": "celsius"
+                          }
+                        },
+                        "description": "Another branch level",
+                        "type": "branch"
+                      }
+                    },
+                    "description": "Second level instance",
+                    "type": "branch"
+                  }
+                },
+                "description": "Second level instance",
+                "type": "branch"
+              }
+            },
+            "description": "Branch with instances, not in list",
+            "type": "branch"
+          },
+          "Rear": {
+            "children": {
+              "Down": {
+                "children": {
+                  "T": {
+                    "datatype": "float",
+                    "description": "New description, shall not inherit anything, will be expanded",
+                    "type": "sensor",
+                    "unit": "km"
+                  }
+                },
+                "description": "Obligatorisch!!!",
+                "type": "branch"
+              },
+              "T": {
+                "comment": "Orig comment.",
+                "datatype": "int8",
+                "description": "Signal A.S.T",
+                "type": "sensor",
+                "unit": "km"
+              },
+              "TT": {
+                "children": {
+                  "Left": {
+                    "children": {
+                      "TTT": {
+                        "children": {
+                          "T4": {
+                            "children": {
+                              "TTTTR": {
+                                "datatype": "float",
+                                "description": "A very nasty sensor",
+                                "type": "sensor"
+                              }
+                            },
+                            "description": "A very nasty branchzhs",
+                            "type": "branch"
+                          },
+                          "TTTT": {
+                            "datatype": "float",
+                            "description": "Some temperature.",
+                            "type": "sensor",
+                            "unit": "celsius"
+                          }
+                        },
+                        "description": "Another branch level",
+                        "type": "branch"
+                      }
+                    },
+                    "description": "Second level instance",
+                    "type": "branch"
+                  },
+                  "Right": {
+                    "children": {
+                      "TTT": {
+                        "children": {
+                          "T4": {
+                            "children": {
+                              "TTTTR": {
+                                "datatype": "float",
+                                "description": "A very nasty sensor",
+                                "type": "sensor"
+                              }
+                            },
+                            "description": "A very nasty branchzhs",
+                            "type": "branch"
+                          },
+                          "TTTT": {
+                            "datatype": "float",
+                            "description": "Some temperature.",
+                            "type": "sensor",
+                            "unit": "celsius"
+                          }
+                        },
+                        "description": "Another branch level",
+                        "type": "branch"
+                      }
+                    },
+                    "description": "Second level instance",
+                    "type": "branch"
+                  }
+                },
+                "description": "Second level instance",
+                "type": "branch"
+              }
+            },
+            "description": "Branch with instances, not in list",
+            "type": "branch"
+          },
+          "Up": {
+            "children": {
+              "T": {
+                "datatype": "float",
+                "description": "New description, shall not inherit anything",
+                "type": "sensor",
+                "unit": "km"
+              }
+            },
+            "description": "dlksdlkds",
+            "type": "branch"
+          }
+        },
+        "description": "Branch with instances, not in list",
+        "type": "branch"
+      }
+    },
+    "description": "Branch A.",
+    "type": "branch"
+  }
+}
