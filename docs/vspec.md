@@ -25,7 +25,8 @@ vspec export --help
 │ protobuf      Export as protobuf.                                                                                    │
 | samm          Export as Eclipse Semantic Modeling Framework (ESMF) - Semantic Aspect Meta Model (SAMM) - .ttl files. |
 │ yaml          Export as YAML.                                                                                        │
-│ tree          Export as Tree.                                                                                        │
+│ tree          Export as Tree.                                                                                        |
+| ros2interface Export as .msg and .srv files                                                                          │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
