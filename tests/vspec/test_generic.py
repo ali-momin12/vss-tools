@@ -39,6 +39,7 @@ def run_exporter(directory, exporter, tmp_path):
     vspec = directory / DEFAULT_TEST_FILE
     types = directory / "types.vspec"
     output = tmp_path / f"out.{exporter}"
+    tmp_path / "out.ros2"
     expected = directory / f"expected.{exporter}"
     if not expected.exists():
         # If you want find directory/exporter combinations not yet covered enable the assert
@@ -57,6 +58,9 @@ def run_exporter(directory, exporter, tmp_path):
     if exporter in ["apigear", "samm"]:
         dcmp = filecmp.dircmp(output, expected)
         assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only)
+    elif exporter in ["ros2interface"]:
+        dcmp = filecmp.dircmp(output, expected)
+        assert not (dcmp.diff_files)
     else:
         assert filecmp.cmp(output, expected)
 
@@ -66,6 +70,7 @@ def test_exporters(directory, tmp_path):
     # Run all "supported" exporters, i.e. not those in contrib
     # Exception is "binary", as it is assumed output may vary depending on target
     exporters = [
+        "ros2interface",
         "apigear",
         "json",
         "jsonschema",
