@@ -40,11 +40,11 @@ Export a VSS model to a ROS 2 interface package: generates `.msg` files (per le
 
 ### Core
 
-- `--output <dir>`: Output directory (required).  
-- `--package-name <name>`: Name of generated ROS 2 interface package (default: `vss_interfaces`).  
-- `--mode {aggregate, leaf}`:  
-  - `aggregate`: one `.msg` per direct parent branch containing all of its leaf signals.  
-  - `leaf`: one `.msg` per leaf signal.  
+- `--output <dir>`: Output directory (required).
+- `--package-name <name>`: Name of generated ROS 2 interface package (default: `vss_interfaces`).
+- `--mode {aggregate, leaf}`:
+  - `aggregate`: one `.msg` per direct parent branch containing all of its leaf signals.
+  - `leaf`: one `.msg` per leaf signal.
 - `--srv {none, get, set, both}`: Also generate `.srv` files.
   - `none`:
     - using this option does not create any .srv files
@@ -63,26 +63,25 @@ Export a VSS model to a ROS 2 interface package: generates `.msg` files (per le
 - `--topics-file <file>`: File with one pattern per line; `#` starts a comment.
 - `--topics-case-insensitive / --topics-case-sensitive`: Case-insensitive matching (default: `--topics-case-sensitive`).
 
-**Pattern syntax** 
+**Pattern syntax**
 
 Following patterns are supported:
 
-- Exact FQN: `Vehicle.Speed`  
-- Leaf name: `Speed`  
-- Glob: `Vehicle.*.Speed`, `*.Speed`  
-- Explicit prefix`:  
-  - regex: `^Vehicle\.Body\..*$`  
-  - glob: `*.Speed`  
-  - fqn: `Vehicle.Speed` (exact or prefix match)  
+- Exact FQN: `Vehicle.Speed`
+- Leaf name: `Speed`
+- Glob: `Vehicle.*.Speed`, `*.Speed`
+- Explicit prefix`:
+  - regex: `^Vehicle\.Body\..*$`
+  - glob: `*.Speed`
+  - fqn: `Vehicle.Speed` (exact or prefix match)
   - Name: `Speed`
-
 
 ## Output
 
 ### Messages (`.msg`)
- 
+
 - `Aggregate` mode
-  one message per direct parent branch. Fields include a leading `uint64 timestamp`, then one field per child leaf.  
+  one message per direct parent branch. Fields include a leading `uint64 timestamp`, then one field per child leaf.
 
 - `Leaf` mode
   one message per leaf. Fields include `uint64 timestamp` and one field for the leaf value.
@@ -99,7 +98,6 @@ This file is Generated when `--srv none|get|set|both` parameter is used. The out
   - Request: `Msg data` or flattened fields
   - Response: `bool success`, `string message`
 
-
 ## Examples
 
 ```bash
@@ -109,11 +107,7 @@ vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I 
 # Export all *.Speed signals, aggregated by their parent branches:
 vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_agg   --mode aggregate   --srv get   --topics '*.Speed'
 ```
-
 ## Usage
 
 ```bash
 vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode aggregate|leaf   --srv none|get|set|both   [--srv-use-msg | --no-srv-use-msg]   [--topics PATTERN ...]   [--exclude-topics PATTERN ...]   [--topics-file patterns.txt]   [--topics-case-insensitive]
-```
-
----
