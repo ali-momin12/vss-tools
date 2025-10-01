@@ -111,3 +111,4 @@ vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I 
 
 ```bash
 vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode aggregate|leaf   --srv none|get|set|both   [--srv-use-msg | --no-srv-use-msg]   [--topics PATTERN ...]   [--exclude-topics PATTERN ...]   [--topics-file patterns.txt]   [--topics-case-insensitive]
+```
