@@ -57,7 +57,7 @@ def run_exporter(directory, exporter, tmp_path):
         cmd += f" --output {output}"
         cmd += f" --topics-file {topics_file} --topics A.* --topics A.Double --topics fqn:A.Uint8 "
         cmd += "  --mode aggregate --srv both --expand --srv-use-msg --exclude-topics Z.*"
-        cmd += "  --topics-case-insensitive"
+        cmd += "  --topics-case-sensitive"
     else:
         cmd += f" --output {output}"
 
