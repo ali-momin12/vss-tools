@@ -60,7 +60,7 @@ def run_exporter(directory, exporter, tmp_path):
         assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only)
     elif exporter in ["ros2interface"]:
         dcmp = filecmp.dircmp(output, expected)
-        assert not (dcmp.diff_files)
+        assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only)
     else:
         assert filecmp.cmp(output, expected)
 
