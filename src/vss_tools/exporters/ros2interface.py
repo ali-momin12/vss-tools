@@ -223,6 +223,26 @@ def _compile_rule(pattern: str, case_insensitive: bool) -> Rule:
 
         return _g
 
+    if kind == "fqn":
+
+        def _f(tail: str, fqn: str) -> bool:
+            tf = fqn.lower() if case_insensitive else fqn
+            p = pat_ci if case_insensitive else pat
+            return tf == p or tf.startswith(p + ".")
+
+        return _f
+
+    # name
+    def _n(tail: str, fqn: str) -> bool:
+        tt = tail.lower() if case_insensitive else tail
+        if "*" in pat or "?" in pat:
+            p = pat_ci if case_insensitive else pat
+            return fnmatchcase(tt, p)
+        p = pat_ci if case_insensitive else pat
+        return tt == p
+
+    return _n
+
 
 class TopicMatcher:
     def __init__(
@@ -586,6 +606,7 @@ def cli(
     if mode.lower() == "leaf":
         msgs = generate_msgs_leaf(root, preselected=preselected)  # list[(fname, content, fields)]
     else:
+        msgs = generate_msgs_leaf(root, preselected=preselected)
         msgs = generate_msgs_aggregate(root, preselected=preselected)  # list[(fname, content, fields)]
 
     # 4) Prepare output dirs
