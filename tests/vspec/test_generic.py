@@ -55,7 +55,7 @@ def run_exporter(directory, exporter, tmp_path):
         cmd += f" --target-folder {output}"
     elif exporter in ["ros2interface"]:
         cmd += f" --output {output}"
-        cmd += f" --topics-file {topics_file} --topics A.*, regex:^Vehicle\.Body\..*$, fqn:Vehicle.Speed  "
+        cmd += f" --topics-file {topics_file} --topics A.*"
         cmd += " --topics-case-insensitive --mode leaf --srv both --expand --srv-use-msg --exclude-topics Z.*"
     else:
         cmd += f" --output {output}"
