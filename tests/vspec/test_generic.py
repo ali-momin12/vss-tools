@@ -55,12 +55,10 @@ def run_exporter(directory, exporter, tmp_path):
     elif exporter in ["samm"]:
         cmd += f" --target-folder {output}"
     elif exporter in ["ros2interface"]:
-        cmd += f" --topics-file {topics_file}"
-        cmd += f" --topics-case-insensitive"
-        cmd += f" --mode leaf"
-        cmd += f" --srv none"
+        cmd += f" --output {output} --topics-file {topics_file} --mode leaf --topics-case-insensitive --srv none"
     else:
         cmd += f" --output {output}"
+
     subprocess.run(cmd.split(), check=True)
     if exporter in ["apigear", "samm"]:
         dcmp = filecmp.dircmp(output, expected)
