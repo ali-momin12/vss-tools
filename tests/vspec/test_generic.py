@@ -56,7 +56,7 @@ def run_exporter(directory, exporter, tmp_path):
     elif exporter in ["ros2interface"]:
         cmd += f" --output {output}"
         cmd += f" --topics-file {topics_file} --mode leaf --topics-case-insensitive"
-        cmd += " --srv none --exapnd --no-srv-use-msg --exclude-topics Z.*"
+        cmd += " --srv none --expand --no-srv-use-msg --exclude-topics Z.*"
     else:
         cmd += f" --output {output}"
 
