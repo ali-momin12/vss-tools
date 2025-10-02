@@ -161,12 +161,7 @@ def iter_leaves(root: VSSNode) -> Iterable[Tuple[VSSNode, object]]:
         children = getattr(node, "children", None) or []
         if children:
             stack.extend(children)
-        try:
-            data = node.get_vss_data()
-        except Exception:
-            data = None
-        if not data:
-            continue
+        data = node.get_vss_data()
         ntype = getattr(data, "type", None)
         if ntype in LEAF_TYPES:
             yield node, data
