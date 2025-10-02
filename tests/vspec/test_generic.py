@@ -35,14 +35,39 @@ def idfn(directory: pathlib.PosixPath):
     return directory.name
 
 
-def run_exporter(directory, exporter, tmp_path):
+def _compare_dirs(left: Path, right: Path, check_structure: bool = True):
+    """
+    Compare directory contents. For ros2interface the original test only checked diff_files.
+    """
+    dcmp = filecmp.dircmp(left, right)
+    if check_structure:
+        assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only), (
+            f"Directory mismatch:\n"
+            f"  Differing files: {dcmp.diff_files}\n"
+            f"  Only in output: {dcmp.left_only}\n"
+            f"  Only in expected: {dcmp.right_only}\n"
+            f"  Output: {left}\n  Expected: {right}"
+        )
+    else:
+        assert not dcmp.diff_files, f"Differing files: {dcmp.diff_files}\n" f"Output: {left}\nExpected: {right}"
+
+
+def run_exporter(directory: Path, exporter: str, tmp_path: Path, *, mode: str | None = None):
     vspec = directory / DEFAULT_TEST_FILE
     types = directory / "types.vspec"
-    output = tmp_path / f"out.{exporter}"
-    expected = directory / f"expected.{exporter}"
+    if exporter == "ros2interface":
+        assert mode in {"leaf", "aggregate"}, "mode must be 'leaf' or 'aggregate' for ros2interface"
+        output = tmp_path / f"out.{exporter}.{mode}"
+        expected_dir = directory / f"expected.{exporter}.{mode}"
+    else:
+        output = tmp_path / f"out.{exporter}"
+        expected_dir = directory / f"expected.{exporter}"
+
     topics_file = directory / "topics.txt"
-    topics_file.write_text("# includes only branch A \n" "A.*", encoding="utf-8")
-    if not expected.exists():
+    if exporter == "ros2interface":
+        topics_file.write_text("# includes only branch A\nA.*", encoding="utf-8")
+
+    if not expected_dir.exists():
         # If you want find directory/exporter combinations not yet covered enable the assert
         # assert False, f"Folder {expected} not found"
         return
@@ -61,20 +86,24 @@ def run_exporter(directory, exporter, tmp_path):
         cmd += f" --output {output}"
 
     subprocess.run(cmd.split(), check=True)
-    if exporter in ["apigear", "samm"]:
-        dcmp = filecmp.dircmp(output, expected)
-        assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only)
-    elif exporter in ["ros2interface"]:
-        dcmp = filecmp.dircmp(output, expected)
-        assert not (dcmp.diff_files)
+    if exporter in {"apigear", "samm"}:
+        _compare_dirs(output, expected_dir, check_structure=True)
+    elif exporter == "ros2interface":
+        # Preserve original semantics: only check differing files
+        _compare_dirs(output, expected_dir, check_structure=False)
     else:
-        assert filecmp.cmp(output, expected)
+        # File outputs
+        assert expected_dir.is_file(), f"Expected file not found: {expected_dir}"
+        assert output.is_file(), f"Output file not found: {output}"
+        assert filecmp.cmp(output, expected_dir), f"Output differs from expected:\n{output}\n{expected_dir}"
 
 
 @pytest.mark.parametrize("directory", default_directories(), ids=idfn)
 def test_exporters(directory, tmp_path):
     # Run all "supported" exporters, i.e. not those in contrib
     # Exception is "binary", as it is assumed output may vary depending on target
+    # For ros2interface, running both 'leaf' and 'aggregate' modes,
+    # to improve coverage of mutually exclusive code paths.
     exporters = [
         "ros2interface",
         "apigear",
@@ -91,4 +120,9 @@ def test_exporters(directory, tmp_path):
     ]
 
     for exporter in exporters:
-        run_exporter(directory, exporter, tmp_path)
+        if exporter == "ros2interface":
+            # Run both modes to cover both branches
+            for mode in ("leaf", "aggregate"):
+                run_exporter(directory, exporter, tmp_path, mode=mode)
+        else:
+            run_exporter(directory, exporter, tmp_path)
