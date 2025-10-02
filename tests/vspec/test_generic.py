@@ -71,6 +71,32 @@ def run_exporter(directory, exporter, tmp_path):
         assert filecmp.cmp(output, expected)
 
 
+def run_exporter2(directory, exporter, tmp_path):
+    vspec = directory / DEFAULT_TEST_FILE
+    types = directory / "types.vspec"
+    output = tmp_path / f"out.{exporter}"
+    expected = directory / f"expected.{exporter}"
+    topics_file = directory / "topics.txt"
+    topics_file.write_text("# includes only branch A \n" "A.*", encoding="utf-8")
+    if not expected.exists():
+        # If you want find directory/exporter combinations not yet covered enable the assert
+        # assert False, f"Folder {expected} not found"
+        return
+    cmd = f"vspec export {exporter} -u {TEST_UNITS} -q {TEST_QUANT} --vspec {vspec} "
+    if types.exists():
+        cmd += f" --types {types}"
+    cmd += f" --output {output}"
+    cmd += f" --topics-file {topics_file} --topics fqn:A.Double --mode leaf --topics-case-insensitive"
+    cmd += "  --srv both --expand --srv-use-msg --exclude-topics Z.*"
+
+    subprocess.run(cmd.split(), check=True)
+    if exporter in ["ros2interface"]:
+        dcmp = filecmp.dircmp(output, expected)
+        assert not (dcmp.diff_files)
+    else:
+        assert filecmp.cmp(output, expected)
+
+
 @pytest.mark.parametrize("directory", default_directories(), ids=idfn)
 def test_exporters(directory, tmp_path):
     # Run all "supported" exporters, i.e. not those in contrib
@@ -90,5 +116,8 @@ def test_exporters(directory, tmp_path):
         "samm",
     ]
 
+    ros2exporter = "ros2interface"
+
     for exporter in exporters:
         run_exporter(directory, exporter, tmp_path)
+    run_exporter2(directory, ros2exporter, tmp_path)
