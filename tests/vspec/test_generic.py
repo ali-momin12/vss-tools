@@ -91,24 +91,4 @@ def test_exporters(directory, tmp_path):
     ]
 
     for exporter in exporters:
-        if exporter == "ros2interface":
-            # 1) Existing behavior (leaf) including comparison
-            run_exporter(directory, exporter, tmp_path)
-
-            # 2) Additional execution for coverage in aggregate mode (no comparison)
-            vspec = directory / DEFAULT_TEST_FILE
-            types = directory / "types.vspec"
-            output = tmp_path / f"out.{exporter}.aggregate"
-            topics_file = directory / "topics.txt"
-            topics_file.write_text("# includes only branch A \n" "A.*", encoding="utf-8")
-
-            cmd = f"vspec export {exporter} -u {TEST_UNITS} -q {TEST_QUANT} --vspec {vspec} "
-            if types.exists():
-                cmd += f" --types {types}"
-            cmd += f" --output {output}"
-            cmd += f" --topics-file {topics_file} --topics A.*"
-            cmd += " --topics-case-sensitive --mode aggregate --srv both --expand --srv-use-msg --exclude-topics Z.*"
-
-            subprocess.run(cmd.split(), check=True)
-        else:
-            run_exporter(directory, exporter, tmp_path)
+        run_exporter(directory, exporter, tmp_path)
