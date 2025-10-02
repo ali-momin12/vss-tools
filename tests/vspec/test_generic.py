@@ -41,6 +41,8 @@ def run_exporter(directory, exporter, tmp_path):
     output = tmp_path / f"out.{exporter}"
     tmp_path / "out.ros2"
     expected = directory / f"expected.{exporter}"
+    topics_file = directory / "topics.txt"
+    topics_file.write_text("# includes only branch A \n" "A.*", encoding="utf-8")
     if not expected.exists():
         # If you want find directory/exporter combinations not yet covered enable the assert
         # assert False, f"Folder {expected} not found"
@@ -52,6 +54,11 @@ def run_exporter(directory, exporter, tmp_path):
         cmd += f" --output-dir {output}"
     elif exporter in ["samm"]:
         cmd += f" --target-folder {output}"
+    elif exporter in ["ros2interface"]:
+        cmd += f" --topics-file {topics_file}"
+        cmd += f" --topics-case-insensitive"
+        cmd += f" --mode leaf"
+        cmd += f" --srv none"
     else:
         cmd += f" --output {output}"
     subprocess.run(cmd.split(), check=True)
