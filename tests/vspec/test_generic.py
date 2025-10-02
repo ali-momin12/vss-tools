@@ -7,6 +7,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import filecmp
+import os
 import pathlib
 import subprocess
 from pathlib import Path
@@ -107,7 +108,10 @@ def run_exporter(directory: Path, exporter: str, tmp_path: Path, *, mode: str | 
     else:
         cmd += ["--output", str(output)]
 
-    subprocess.run(cmd.split(), check=True)
+    env = os.environ.copy()
+
+    # Run
+    subprocess.run(cmd, check=True, env=env)
 
     if not expected_dir.exists():
         # If you want find directory/exporter combinations not yet covered enable the assert
