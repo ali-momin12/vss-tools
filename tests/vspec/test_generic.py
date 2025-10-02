@@ -54,9 +54,10 @@ def run_exporter(directory, exporter, tmp_path):
     elif exporter in ["samm"]:
         cmd += f" --target-folder {output}"
     elif exporter in ["ros2interface"]:
+        cmd += f" --types {types}"
         cmd += f" --output {output}"
         cmd += f" --topics-file {topics_file} --topics A.* --mode leaf --topics-case-insensitive"
-        cmd += "  --package-name vss_interface --srv both --expand --srv-use-msg --exclude-topics Z.*"
+        cmd += "  --srv both --expand --srv-use-msg --exclude-topics Z.*"
     else:
         cmd += f" --output {output}"
 
@@ -66,7 +67,7 @@ def run_exporter(directory, exporter, tmp_path):
         assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only)
     elif exporter in ["ros2interface"]:
         dcmp = filecmp.dircmp(output, expected)
-        assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only)
+        assert not (dcmp.diff_files)
     else:
         assert filecmp.cmp(output, expected)
 
