@@ -144,11 +144,7 @@ def map_vss_to_ros_field(datatype: str, arraysize: Optional[int]) -> str:
     is_var_array = base.endswith("[]")
     base = base[:-2] if is_var_array else base
 
-    if base not in ROS_PRIMITIVE_MAP:
-        log.warning("Unknown VSS datatype '%s', defaulting to 'string'", datatype)
-        ros_base = "string"
-    else:
-        ros_base = ROS_PRIMITIVE_MAP[base]
+    ros_base = ROS_PRIMITIVE_MAP[base]
 
     if arraysize and arraysize > 0:
         return f"{ros_base}[{arraysize}]"
