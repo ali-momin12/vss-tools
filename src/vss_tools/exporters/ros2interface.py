@@ -342,18 +342,6 @@ def render_srv_file(
 # ----------------------------- Build fields & msgs ------------------------------
 
 
-def sanitize_allowed(values: List[str]) -> List[str]:
-    seen = set()
-    out: List[str] = []
-
-    for v in values:
-        s = str(v)
-        if s not in seen:
-            seen.add(s)
-            out.append(s)
-    return out
-
-
 def build_field_from_leaf(leaf_node: VSSNode, data) -> Dict[str, str]:
     fqn = leaf_node.get_fqn()
     tail = fqn.split(".")[-1]
@@ -412,7 +400,7 @@ def generate_msgs_aggregate(
                 allowed_values.extend(list(vals))
         enum_comment = None
         if allowed_values:
-            enum_comment = ["Allowed values (combined): " + ", ".join(sanitize_allowed(allowed_values))]
+            enum_comment = ["Allowed values (combined): " + ", ".join(map(str, allowed_values))]
 
         msg_name = fqn_to_msg_basename(pfqn) + ".msg"
         content = render_msg_file(pfqn, fields, header_comment, enum_comment)
@@ -436,7 +424,7 @@ def generate_msgs_leaf(
         allowed_values = getattr(data, "allowed", None)
         enum_comment = None
         if isinstance(allowed_values, (list, tuple)) and allowed_values:
-            enum_comment = ["Allowed values: " + ", ".join(sanitize_allowed(list(allowed_values)))]
+            enum_comment = ["Allowed values: " + ", ".join(map(str, list(allowed_values)))]
         msg_name = fqn_to_msg_basename(fqn) + ".msg"
         base_fields = [{"type": "uint64", "name": "timestamp"}, field]
         content = render_msg_file(fqn, base_fields, header_comment, enum_comment)
