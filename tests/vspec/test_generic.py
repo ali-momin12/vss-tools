@@ -8,7 +8,6 @@
 
 import filecmp
 import os
-import pathlib
 import subprocess
 from pathlib import Path
 
@@ -21,18 +20,18 @@ DEFAULT_TEST_FILE = "test.vspec"
 
 
 def default_directories() -> list:
-    directories = []
+    directories: list[Path] = []
     for path in HERE.iterdir():
         if path.is_dir():
             if list(path.rglob(DEFAULT_TEST_FILE)):
-                # Exclude directories with custom made python file
+                # Exclude directories with custom python files
                 if not list(path.rglob("*.py")):
                     directories.append(path)
     return directories
 
 
 # Use directory name as test name
-def idfn(directory: pathlib.PosixPath):
+def idfn(directory: Path):
     return directory.name
 
 
@@ -131,7 +130,7 @@ def run_exporter(directory: Path, exporter: str, tmp_path: Path, *, mode: str | 
 
 
 @pytest.mark.parametrize("directory", default_directories(), ids=idfn)
-def test_exporters(directory, tmp_path):
+def test_exporters(directory: Path, tmp_path: Path):
     # Run all "supported" exporters, i.e. not those in contrib
     # Exception is "binary", as it is assumed output may vary depending on target
     # For ros2interface, running both 'leaf' and 'aggregate' modes,
