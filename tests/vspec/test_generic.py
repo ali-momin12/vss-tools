@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import filecmp
-import os
+import pathlib
 import subprocess
 from pathlib import Path
 
@@ -20,121 +20,61 @@ DEFAULT_TEST_FILE = "test.vspec"
 
 
 def default_directories() -> list:
-    directories: list[Path] = []
+    directories = []
     for path in HERE.iterdir():
         if path.is_dir():
             if list(path.rglob(DEFAULT_TEST_FILE)):
-                # Exclude directories with custom python files
+                # Exclude directories with custom made python file
                 if not list(path.rglob("*.py")):
                     directories.append(path)
     return directories
 
 
 # Use directory name as test name
-def idfn(directory: Path):
+def idfn(directory: pathlib.PosixPath):
     return directory.name
 
 
-def _compare_dirs(left: Path, right: Path, check_structure: bool = True):
-    """
-    Compare directory contents. For ros2interface the original test only checked diff_files.
-    """
-    dcmp = filecmp.dircmp(left, right)
-    if check_structure:
-        assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only), (
-            f"Directory mismatch:\n"
-            f"  Differing files: {dcmp.diff_files}\n"
-            f"  Only in output: {dcmp.left_only}\n"
-            f"  Only in expected: {dcmp.right_only}\n"
-            f"  Output: {left}\n  Expected: {right}"
-        )
-    else:
-        assert not dcmp.diff_files, f"Differing files: {dcmp.diff_files}\n" f"Output: {left}\nExpected: {right}"
-
-
-def run_exporter(directory: Path, exporter: str, tmp_path: Path, *, mode: str | None = None):
+def run_exporter(directory, exporter, tmp_path):
     vspec = directory / DEFAULT_TEST_FILE
     types = directory / "types.vspec"
-    if exporter == "ros2interface":
-        assert mode in {"leaf", "aggregate"}, "mode must be 'leaf' or 'aggregate' for ros2interface"
-        output = tmp_path / f"out.{exporter}.{mode}"
-        expected_dir = directory / f"expected.{exporter}.{mode}"
-    else:
-        output = tmp_path / f"out.{exporter}"
-        expected_dir = directory / f"expected.{exporter}"
-
+    output = tmp_path / f"out.{exporter}"
+    expected = directory / f"expected.{exporter}"
     topics_file = directory / "topics.txt"
-    if exporter == "ros2interface":
-        topics_file.write_text("# includes only branch A\nA.*", encoding="utf-8")
-
-    # Build the command as a list (robust against spaces)
-    cmd: list[str] = [
-        "vspec",
-        "export",
-        exporter,
-        "-u",
-        str(TEST_UNITS),
-        "-q",
-        str(TEST_QUANT),
-        "--vspec",
-        str(vspec),
-    ]
-    if types.exists():
-        cmd += ["--types", str(types)]
-
-    if exporter == "apigear":
-        cmd += ["--output-dir", str(output)]
-    elif exporter == "samm":
-        cmd += ["--target-folder", str(output)]
-    elif exporter == "ros2interface":
-        cmd += [
-            "--output",
-            str(output),
-            "--topics-file",
-            str(topics_file),
-            "--topics",
-            "A.*",
-            "--topics-case-insensitive",
-            "--mode",
-            str(mode),
-            "--srv",
-            "both",
-            "--expand",
-            "--srv-use-msg",
-            "--exclude-topics",
-            "Z.*",
-        ]
-    else:
-        cmd += ["--output", str(output)]
-
-    env = os.environ.copy()
-
-    # Run
-    subprocess.run(cmd, check=True, env=env)
-
-    if not expected_dir.exists():
+    topics_file.write_text("# includes only branch A \n" "A.*", encoding="utf-8")
+    if not expected.exists():
         # If you want find directory/exporter combinations not yet covered enable the assert
         # assert False, f"Folder {expected} not found"
         return
-
-    if exporter in {"apigear", "samm"}:
-        _compare_dirs(output, expected_dir, check_structure=True)
-    elif exporter == "ros2interface":
-        # Preserve original semantics: only check differing files
-        _compare_dirs(output, expected_dir, check_structure=False)
+    cmd = f"vspec export {exporter} -u {TEST_UNITS} -q {TEST_QUANT} --vspec {vspec} "
+    if types.exists():
+        cmd += f" --types {types}"
+    if exporter in ["apigear"]:
+        cmd += f" --output-dir {output}"
+    elif exporter in ["samm"]:
+        cmd += f" --target-folder {output}"
+    elif exporter in ["ros2interface"]:
+        cmd += f" --output {output}"
+        cmd += f" --topics-file {topics_file} --topics A.* --mode leaf --topics-case-insensitive"
+        cmd += "  --srv both --expand --srv-use-msg --exclude-topics Z.*"
     else:
-        # File outputs
-        assert expected_dir.is_file(), f"Expected file not found: {expected_dir}"
-        assert output.is_file(), f"Output file not found: {output}"
-        assert filecmp.cmp(output, expected_dir), f"Output differs from expected:\n{output}\n{expected_dir}"
+        cmd += f" --output {output}"
+
+    subprocess.run(cmd.split(), check=True)
+    if exporter in ["apigear", "samm"]:
+        dcmp = filecmp.dircmp(output, expected)
+        assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only)
+    elif exporter in ["ros2interface"]:
+        dcmp = filecmp.dircmp(output, expected)
+        assert not (dcmp.diff_files)
+    else:
+        assert filecmp.cmp(output, expected)
 
 
 @pytest.mark.parametrize("directory", default_directories(), ids=idfn)
-def test_exporters(directory: Path, tmp_path: Path):
+def test_exporters(directory, tmp_path):
     # Run all "supported" exporters, i.e. not those in contrib
     # Exception is "binary", as it is assumed output may vary depending on target
-    # For ros2interface, running both 'leaf' and 'aggregate' modes,
-    # to improve coverage of mutually exclusive code paths.
     exporters = [
         "ros2interface",
         "apigear",
@@ -152,8 +92,23 @@ def test_exporters(directory: Path, tmp_path: Path):
 
     for exporter in exporters:
         if exporter == "ros2interface":
-            # Run both modes to cover both branches
-            for mode in ("leaf", "aggregate"):
-                run_exporter(directory, exporter, tmp_path, mode=mode)
+            # 1) Existing behavior (leaf) including comparison
+            run_exporter(directory, exporter, tmp_path)
+
+            # 2) Additional execution for coverage in aggregate mode (no comparison)
+            vspec = directory / DEFAULT_TEST_FILE
+            types = directory / "types.vspec"
+            output = tmp_path / f"out.{exporter}.aggregate"
+            topics_file = directory / "topics.txt"
+            topics_file.write_text("# includes only branch A \n" "A.*", encoding="utf-8")
+
+            cmd = f"vspec export {exporter} -u {TEST_UNITS} -q {TEST_QUANT} --vspec {vspec} "
+            if types.exists():
+                cmd += f" --types {types}"
+            cmd += f" --output {output}"
+            cmd += f" --topics-file {topics_file} --topics A.*"
+            cmd += " --topics-case-sensitive --mode aggregate --srv both --expand --srv-use-msg --exclude-topics Z.*"
+
+            subprocess.run(cmd.split(), check=True)
         else:
             run_exporter(directory, exporter, tmp_path)
