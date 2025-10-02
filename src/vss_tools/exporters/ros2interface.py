@@ -86,19 +86,16 @@ def load_vspec_tree(
     overlays_files: Tuple[Path, ...],
     expand: bool,
 ) -> VSSNode:
-    try:
-        root, _ = get_trees(
-            vspec=vspec_file,
-            include_dirs=include_dirs,
-            quantities=quantities_files,
-            units=units_files,
-            types=types_files,
-            overlays=overlays_files,
-            expand=expand,
-        )
-        return root
-    except Exception as e:
-        raise RuntimeError(f"Failed to load VSS via vss_tools.main.get_trees(): {e}")
+    root, _ = get_trees(
+        vspec=vspec_file,
+        include_dirs=include_dirs,
+        quantities=quantities_files,
+        units=units_files,
+        types=types_files,
+        overlays=overlays_files,
+        expand=expand,
+    )
+    return root
 
 
 # ------------------------------ Naming & type mapping --------------------------------------
