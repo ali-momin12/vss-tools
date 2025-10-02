@@ -39,7 +39,6 @@ def run_exporter(directory, exporter, tmp_path):
     vspec = directory / DEFAULT_TEST_FILE
     types = directory / "types.vspec"
     output = tmp_path / f"out.{exporter}"
-    tmp_path / "out.ros2"
     expected = directory / f"expected.{exporter}"
     topics_file = directory / "topics.txt"
     topics_file.write_text("# includes only branch A \n" "A.*", encoding="utf-8")
@@ -55,7 +54,9 @@ def run_exporter(directory, exporter, tmp_path):
     elif exporter in ["samm"]:
         cmd += f" --target-folder {output}"
     elif exporter in ["ros2interface"]:
-        cmd += f" --output {output} --topics-file {topics_file} --mode leaf --topics-case-insensitive --srv none"
+        cmd += f" --output {output}"
+        cmd += f" --topics-file {topics_file} --mode leaf --topics-case-insensitive"
+        cmd += " --srv none --exapnd --no-srv-use-msg --exclude-topics Z.*"
     else:
         cmd += f" --output {output}"
 
