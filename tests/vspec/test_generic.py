@@ -67,25 +67,53 @@ def run_exporter(directory: Path, exporter: str, tmp_path: Path, *, mode: str | 
     if exporter == "ros2interface":
         topics_file.write_text("# includes only branch A\nA.*", encoding="utf-8")
 
+    # Build the command as a list (robust against spaces)
+    cmd: list[str] = [
+        "vspec",
+        "export",
+        exporter,
+        "-u",
+        str(TEST_UNITS),
+        "-q",
+        str(TEST_QUANT),
+        "--vspec",
+        str(vspec),
+    ]
+    if types.exists():
+        cmd += ["--types", str(types)]
+
+    if exporter == "apigear":
+        cmd += ["--output-dir", str(output)]
+    elif exporter == "samm":
+        cmd += ["--target-folder", str(output)]
+    elif exporter == "ros2interface":
+        cmd += [
+            "--output",
+            str(output),
+            "--topics-file",
+            str(topics_file),
+            "--topics",
+            "A.*",
+            "--topics-case-insensitive",
+            "--mode",
+            str(mode),
+            "--srv",
+            "both",
+            "--expand",
+            "--srv-use-msg",
+            "--exclude-topics",
+            "Z.*",
+        ]
+    else:
+        cmd += ["--output", str(output)]
+
+    subprocess.run(cmd.split(), check=True)
+
     if not expected_dir.exists():
         # If you want find directory/exporter combinations not yet covered enable the assert
         # assert False, f"Folder {expected} not found"
         return
-    cmd = f"vspec export {exporter} -u {TEST_UNITS} -q {TEST_QUANT} --vspec {vspec} "
-    if types.exists():
-        cmd += f" --types {types}"
-    if exporter in ["apigear"]:
-        cmd += f" --output-dir {output}"
-    elif exporter in ["samm"]:
-        cmd += f" --target-folder {output}"
-    elif exporter in ["ros2interface"]:
-        cmd += f" --output {output}"
-        cmd += f" --topics-file {topics_file} --topics A.*"
-        cmd += " --topics-case-insensitive --mode leaf --srv both --expand --srv-use-msg --exclude-topics Z.*"
-    else:
-        cmd += f" --output {output}"
 
-    subprocess.run(cmd.split(), check=True)
     if exporter in {"apigear", "samm"}:
         _compare_dirs(output, expected_dir, check_structure=True)
     elif exporter == "ros2interface":
