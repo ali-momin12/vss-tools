@@ -18,9 +18,3 @@ rotational-speed:
 
 relation:
   definition: Test
-
-min:
-  definition: Minimum value
-
-max:
-  definition: Maximum value

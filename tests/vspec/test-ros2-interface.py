@@ -13,8 +13,8 @@ from pathlib import Path
 import pytest
 
 HERE = Path(__file__).resolve().parent
-TEST_UNITS = HERE / "test_units.yaml"
-TEST_QUANT = HERE / "test_quantities.yaml"
+TEST_UNITS = HERE / "test_units_ros2.yaml"
+TEST_QUANT = HERE / "test_quantities_ros2.yaml"
 EXPORTER = "ros2interface"  # the subcommand of ros2 exporter
 DEFAULT_PKG = "vss_interfaces"  # package name used in tests
 
