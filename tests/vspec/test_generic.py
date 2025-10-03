@@ -58,6 +58,7 @@ def run_exporter(directory, exporter, tmp_path):
         cmd += f" --topics-file {topics_file} --topics A.* --topics A.Double --topics fqn:A.Uint8"
         cmd += "  --mode aggregate --srv both --expand --srv-use-msg --exclude-topics Z.*"
         cmd += "  --topics-case-sensitive --topics name:Uint16 --topics Uint32"
+        cmd += "  --topics *:Float --topics regex:^A\\.Int16\\..*$ --topics Uint32"
     else:
         cmd += f" --output {output}"
 
