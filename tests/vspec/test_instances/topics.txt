@@ -1,2 +1,2 @@
-# includes only branch A 
+# includes only branch A
 A.*
