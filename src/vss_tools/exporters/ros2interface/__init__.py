@@ -232,8 +232,8 @@ def _compile_rule(pattern: str, case_insensitive: bool) -> Rule:
 class TopicMatcher:
     def __init__(
         self,
-        include_patterns: set[str],
-        exclude_patterns: set[str],
+        include_patterns: List[str],
+        exclude_patterns: List[str],
         case_insensitive: bool = False,
     ):
         self.include_rules: List[Rule] = (
