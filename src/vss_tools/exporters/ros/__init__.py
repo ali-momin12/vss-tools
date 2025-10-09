@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Contributors to COVESA
+# Copyright (c) 2025 Contributors to COVESA
 #
 # This program and the accompanying materials are made available under the
 # terms of the Mozilla Public License 2.0 which is available at
@@ -65,7 +65,7 @@ from __future__ import annotations
 import re
 from fnmatch import fnmatchcase
 from pathlib import Path
-from typing import Callable, Iterable, List, Optional, Sequence, Tuple
+from typing import Callable, Iterable, Optional, Sequence, Tuple
 
 import rich_click as click
 import yaml
@@ -129,9 +129,8 @@ def field_name_from_tail(tail: str) -> str:
 
 
 def map_vss_to_ros_field(datatype: str, arraysize: int | None) -> str:
-    base = datatype.strip()
-    is_var_array = is_array(base)
-    base = datatype.rstrip("[]") if is_var_array else base
+    is_var_array = is_array(datatype)
+    base = datatype.rstrip("[]") if is_var_array else datatype
 
     ros_base = ROS_PRIMITIVE_MAP[base]
 
@@ -232,16 +231,16 @@ def _compile_rule(pattern: str, case_insensitive: bool) -> Rule:
 class TopicMatcher:
     def __init__(
         self,
-        include_patterns: List[str],
-        exclude_patterns: List[str],
+        include_patterns: list[str],
+        exclude_patterns: list[str],
         case_insensitive: bool = False,
     ):
-        self.include_rules: List[Rule] = (
+        self.include_rules: list[Rule] = (
             [_compile_rule(p, case_insensitive) for p in include_patterns]
             if include_patterns
             else [lambda tail, fqn: True]  # match all if no includes
         )
-        self.exclude_rules: List[Rule] = [_compile_rule(p, case_insensitive) for p in exclude_patterns]
+        self.exclude_rules: list[Rule] = [_compile_rule(p, case_insensitive) for p in exclude_patterns]
 
     def matches(self, fqn: str) -> bool:
         tail = fqn.split(".")[-1]
@@ -250,7 +249,7 @@ class TopicMatcher:
         return any(rule(tail, fqn) for rule in self.include_rules)
 
 
-def _read_patterns_file(path: Optional[Path]) -> List[str]:
+def _read_patterns_file(path: Optional[Path]) -> list[str]:
     if not path:
         return []
 
@@ -268,7 +267,7 @@ def _read_patterns_file(path: Optional[Path]) -> List[str]:
         pass  # Fallback to plain text parsing
 
     # Fallback: treat as plain text lines
-    patterns: List[str] = []
+    patterns: list[str] = []
     for line in text.splitlines():
         s = line.strip()
         if not s or s.startswith("#"):
@@ -279,12 +278,12 @@ def _read_patterns_file(path: Optional[Path]) -> List[str]:
 
 def filter_leaves(
     all_leaves: Iterable[Tuple[VSSNode, object]],
-    include_patterns: List[str],
-    exclude_patterns: List[str],
+    include_patterns: list[str],
+    exclude_patterns: list[str],
     case_insensitive: bool,
-) -> List[Tuple[VSSNode, object]]:
+) -> list[Tuple[VSSNode, object]]:
     matcher = TopicMatcher(include_patterns, exclude_patterns, case_insensitive)
-    selected: List[Tuple[VSSNode, object]] = []
+    selected: list[Tuple[VSSNode, object]] = []
 
     for node, data in all_leaves:
         fqn = node.get_fqn()
@@ -294,18 +293,18 @@ def filter_leaves(
 
 
 # ------------------------------------- Rendering helpers -----------------------------------
-def _format_comment(lines: List[str]) -> str:
+def _format_comment(lines: list[str]) -> str:
     lines = [f"# {ln}" if ln else "#" for ln in lines]
     return "\n".join(lines) + ("\n" if lines else "")
 
 
 def render_msg_file(
     fqn: str,
-    fields: List[dict[str, str]],
-    header_comment: List[str],
-    enum_comment: Optional[List[str]] = None,
+    fields: list[dict[str, str]],
+    header_comment: list[str],
+    enum_comment: Optional[list[str]] = None,
 ) -> str:
-    buf: List[str] = []
+    buf: list[str] = []
     buf.append(GEN_HEADER)
     if header_comment:
         buf.append(_format_comment(header_comment).rstrip())
@@ -324,11 +323,11 @@ def render_msg_file(
 
 
 def render_srv_file(
-    request_lines: List[str],
-    response_lines: List[str],
-    header: Optional[List[str]] = None,
+    request_lines: list[str],
+    response_lines: list[str],
+    header: Optional[list[str]] = None,
 ) -> str:
-    buf: List[str] = []
+    buf: list[str] = []
     buf.append(GEN_HEADER)
     if header:
         buf.append(_format_comment(header).rstrip())
@@ -352,10 +351,10 @@ def build_field_from_leaf(leaf_node: VSSNode, data) -> dict[str, str]:
     maxv = getattr(data, "max", None)
     desc = getattr(data, "description", None)
 
-    extra: List[str] = []
+    extra: list[str] = []
     if unit:
         extra.append(f"unit={unit}")
-    rng: List[str] = []
+    rng: list[str] = []
     if minv is not None:
         rng.append(str(minv))
     if maxv is not None:
@@ -372,10 +371,10 @@ def build_field_from_leaf(leaf_node: VSSNode, data) -> dict[str, str]:
 
 def generate_msgs_aggregate(
     root: VSSNode, preselected: Optional[Sequence[Tuple[VSSNode, object]]] = None
-) -> List[Tuple[str, str, List[dict[str, str]]]]:
+) -> list[Tuple[str, str, list[dict[str, str]]]]:
     # returns list[(msg_filename, content, fields)]
     items = list(preselected) if preselected is not None else list(iter_leaves(root))
-    buckets: dict[str, List[Tuple[VSSNode, object]]] = {}
+    buckets: dict[str, list[Tuple[VSSNode, object]]] = {}
 
     for node, data in items:
         pfqn = direct_parent_fqn(node)
@@ -383,16 +382,16 @@ def generate_msgs_aggregate(
             pfqn = node
         buckets.setdefault(pfqn, []).append((node, data))
 
-    outputs: List[Tuple[str, str, List[dict[str, str]]]] = []
+    outputs: list[Tuple[str, str, list[dict[str, str]]]] = []
 
     for pfqn, leaf_items in buckets.items():
-        fields: List[dict[str, str]] = [
+        fields: list[dict[str, str]] = [
             build_field_from_leaf(n, d) for n, d in sorted(leaf_items, key=lambda x: x[0].get_fqn())
         ]
         fields = [{"type": "uint64", "name": "timestamp"}] + fields
         header_comment = [f"Parent branch: {pfqn}"]
 
-        allowed_values: List[str] = []
+        allowed_values: list[str] = []
 
         for _, d in leaf_items:
             vals = getattr(d, "allowed", None)
@@ -413,8 +412,8 @@ def generate_msgs_aggregate(
 
 def generate_msgs_leaf(
     root: VSSNode, preselected: Optional[Sequence[Tuple[VSSNode, object]]] = None
-) -> List[Tuple[str, str, List[dict[str, str]]]]:
-    outputs: List[Tuple[str, str, List[dict[str, str]]]] = []
+) -> list[Tuple[str, str, list[dict[str, str]]]]:
+    outputs: list[Tuple[str, str, list[dict[str, str]]]] = []
     items = list(preselected) if preselected is not None else list(iter_leaves(root))
 
     for node, data in items:
@@ -423,7 +422,7 @@ def generate_msgs_leaf(
         header_comment = [f"Signal: {fqn}"]
         allowed_values = getattr(data, "allowed", None)
         enum_comment = None
-        if isinstance(allowed_values, (list, tuple)) and allowed_values:
+        if allowed_values:
             enum_comment = ["Allowed values: " + ", ".join(map(str, list(allowed_values)))]
         msg_name = to_pascal(node.get_fqn("_")) + ".msg"
         base_fields = [{"type": "uint64", "name": "timestamp"}, field]
@@ -437,10 +436,10 @@ def generate_msgs_leaf(
 
 def srv_names_for_msg(msg_filename: str) -> Tuple[str, str, str, str]:
     base = msg_filename[:-4] if msg_filename.lower().endswith(".msg") else msg_filename
-    return base, f"Get{base}.srv", f"Set{base}.srv", f"Get{base}ByTime.srv"
+    return base, f"Get{base}.srv", f"Set{base}.srv"
 
 
-def render_get_srv(pkg_name: str, msg_name: str, fields: List[dict[str, str]], use_msg: bool) -> str:
+def render_get_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], use_msg: bool) -> str:
     header = [f"Service: Get{msg_name}", "Returns latest values for this group."]
     request = [
         "uint64 start_time_ms",
@@ -453,7 +452,7 @@ def render_get_srv(pkg_name: str, msg_name: str, fields: List[dict[str, str]], u
     return render_srv_file(request, response, header)
 
 
-def render_set_srv(pkg_name: str, msg_name: str, fields: List[dict[str, str]], use_msg: bool) -> str:
+def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], use_msg: bool) -> str:
     header = [f"Service: Set{msg_name}", "Sets values for this group."]
     if use_msg:
         request = [f"{msg_name} data"]
@@ -466,7 +465,13 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: List[dict[str, str]], u
 # ---------------------------------------------- CLI ----------------------------------------
 
 
-@click.command(help="Export a VSS model to a ROS 2 interface package (.msg + optional .srv).")
+@click.command(
+    help="This exporter takes VSS `Vspec` file as a source and it "
+    "generates `.msg` files (per leaf or aggregated by parent branch)"
+    "and optional `.srv` files for Get/Set operations. "
+    "This exporter plugs into the `vspec export` CLI like other vss-tools exporters."
+    "For generic exporter usage and common arguments, see the `vspec` documentation."
+)
 @clo.vspec_opt
 @clo.include_dirs_opt
 @clo.units_opt
@@ -476,13 +481,13 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: List[dict[str, str]], u
 @clo.expand_opt
 @click.option(
     "--output",
+    "-o",
     type=click.Path(dir_okay=True, path_type=Path, file_okay=False),
     help="Output Directory.",
     required=True,
 )
 @click.option(
     "--package-name",
-    required=True,
     default="vss_interfaces",
     show_default=True,
     help="Name of the ROS 2 interface package to generate (e.g., vss_interfaces).",
@@ -567,7 +572,7 @@ def cli(
     include_patterns = list(topics) + _read_patterns_file(topics_file)
     exclude_patterns = list(exclude_topics)
 
-    preselected: Optional[List[Tuple[VSSNode, object]]] = None
+    preselected: Optional[list[Tuple[VSSNode, object]]] = None
     if include_patterns or exclude_patterns:
         log.info("Applying topic filters (includes=%d, excludes=%d)…", len(include_patterns), len(exclude_patterns))
         preselected = filter_leaves(
@@ -603,8 +608,8 @@ def cli(
     msg_dir.mkdir(parents=True, exist_ok=True)
     if srv:
         srv_dir.mkdir(parents=True, exist_ok=True)
-    msg_rel_paths: List[str] = []
-    srv_rel_paths: List[str] = []
+    msg_rel_paths: list[str] = []
+    srv_rel_paths: list[str] = []
 
     # Write .msg files from VSS
     for fname, content, fields in msgs:
@@ -613,8 +618,8 @@ def cli(
 
     # Write ordinary .srv files (get/set)
     if srv:
-        for fname, _content, fields in msgs:
-            base, get_srv_name, set_srv_name, _by_time_srv_name = srv_names_for_msg(fname)
+        for fname, content, fields in msgs:
+            base, get_srv_name, set_srv_name = srv_names_for_msg(fname)
             msg_type_name = base
             if srv.lower() in ("get", "both"):
                 get_content = render_get_srv(package_name, msg_type_name, fields, srv_use_msg)

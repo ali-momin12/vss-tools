@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Contributors to COVESA
+# Copyright (c) 2025 Contributors to COVESA
 #
 # This program and the accompanying materials are made available under the
 # terms of the Mozilla Public License 2.0 which is available at
@@ -53,7 +53,7 @@ def run_exporter(directory, exporter, tmp_path):
         cmd += f" --output-dir {output}"
     elif exporter in ["samm"]:
         cmd += f" --target-folder {output}"
-    elif exporter in ["ros2interface"]:
+    elif exporter in ["ros"]:
         cmd += f" --output {output}"
         cmd += f" --topics-file {topics_file} --topics A.* --topics A.Double --topics fqn:A.Uint8"
         cmd += "  --mode aggregate --srv both --expand --srv-use-msg --exclude-topics Z.*"
@@ -66,7 +66,7 @@ def run_exporter(directory, exporter, tmp_path):
     if exporter in ["apigear", "samm"]:
         dcmp = filecmp.dircmp(output, expected)
         assert not (dcmp.diff_files or dcmp.left_only or dcmp.right_only)
-    elif exporter in ["ros2interface"]:
+    elif exporter in ["ros"]:
         dcmp = filecmp.dircmp(output, expected)
         assert not (dcmp.diff_files)
     else:
@@ -78,7 +78,7 @@ def test_exporters(directory, tmp_path):
     # Run all "supported" exporters, i.e. not those in contrib
     # Exception is "binary", as it is assumed output may vary depending on target
     exporters = [
-        "ros2interface",
+        "ros",
         "apigear",
         "json",
         "jsonschema",
