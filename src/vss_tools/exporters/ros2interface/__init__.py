@@ -154,7 +154,7 @@ def iter_leaves(root: VSSNode) -> Iterable[Tuple[VSSNode, object]]:
             yield node, data
 
 
-def direct_parent_fqn(node: VSSNode) -> VSSNode | None:
+def direct_parent_fqn(node: VSSNode) -> str | None:
     if node.parent is None:
         return None  # No parent (e.g., Vehicle node)
     return node.parent.get_fqn()
