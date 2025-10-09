@@ -434,7 +434,7 @@ def generate_msgs_leaf(
 # ------------------------- SRV generation --------------------------
 
 
-def srv_names_for_msg(msg_filename: str) -> Tuple[str, str, str, str]:
+def srv_names_for_msg(msg_filename: str) -> Tuple[str, str, str]:
     base = msg_filename[:-4] if msg_filename.lower().endswith(".msg") else msg_filename
     return base, f"Get{base}.srv", f"Set{base}.srv"
 
