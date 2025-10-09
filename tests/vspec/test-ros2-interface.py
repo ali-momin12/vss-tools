@@ -688,7 +688,7 @@ def test_cli_entrypoint_smoke():
 
     try:
         cp = subprocess.run(
-            ["vspec", "export", "ros2interface", "--help"],
+            ["vspec", "export", "ros", "--help"],
             text=True,
             capture_output=True,
         )
@@ -697,7 +697,7 @@ def test_cli_entrypoint_smoke():
 
     if cp.returncode != 0:
         pytest.skip(
-            "ros2interface exporter not registered with 'vspec export'. "
+            "ros exporter not registered with 'vspec export'. "
             "Install exporter package with entry points (e.g., pip install -e .) to enable this smoke test."
         )
 

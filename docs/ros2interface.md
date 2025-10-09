@@ -105,13 +105,13 @@ This file is Generated when `--srv none|get|set|both` parameter is used. The out
 
 ```bash
 # Export only Vehicle.Speed as leaf message + get/set services:
-vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_interfaces   --mode leaf   --srv both --srv-use-msg   --topics Vehicle.Speed
+vspec export ros   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_interfaces   --mode leaf   --srv both --srv-use-msg   --topics Vehicle.Speed
 
 # Export all *.Speed signals, aggregated by their parent branches:
-vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_agg   --mode aggregate   --srv get   --topics '*.Speed'
+vspec export ros   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_agg   --mode aggregate   --srv get   --topics '*.Speed'
 ```
 ## Usage
 
 ```bash
-vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode aggregate|leaf   --srv none|get|set|both   [--srv-use-msg | --no-srv-use-msg]   [--topics PATTERN ...]   [--exclude-topics PATTERN ...]   [--topics-file patterns.txt]   [--topics-case-insensitive]
+vspec export ros   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode aggregate|leaf   --srv none|get|set|both   [--srv-use-msg | --no-srv-use-msg]   [--topics PATTERN ...]   [--exclude-topics PATTERN ...]   [--topics-file patterns.txt]   [--topics-case-insensitive]
 ```

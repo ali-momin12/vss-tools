@@ -40,7 +40,7 @@ Key CLI options (existing remain)
 Examples
 --------
 # Export only Vehicle.Speed as leaf message + get/set services:
-vspec export ros2interface \
+vspec export ros \
   --vspec spec/VehicleSignalSpecification.vspec \
   -I spec \
   --output ./out \
@@ -50,7 +50,7 @@ vspec export ros2interface \
   --topics Vehicle.Speed
 
 # Export all *.Speed signals, aggregated by their parent branches:
-vspec export ros2interface \
+vspec export ros \
   --vspec spec/VehicleSignalSpecification.vspec \
   -I spec \
   --output ./out \
