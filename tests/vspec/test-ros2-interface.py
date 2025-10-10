@@ -15,7 +15,7 @@ import pytest
 HERE = Path(__file__).resolve().parent
 TEST_UNITS = HERE / "test_units_ros2.yaml"
 TEST_QUANT = HERE / "test_quantities_ros2.yaml"
-EXPORTER = "ros"  # the subcommand of ros2 exporter
+EXPORTER = "ros2interface"  # the subcommand of ros2 exporter
 DEFAULT_PKG = "vss_interfaces"  # package name used in tests
 
 
@@ -476,7 +476,6 @@ A.Speed:
         vspec,
         tmp_path,
         mode="leaf",
-        extra_args=["--srv", "none"],
     )
     get_srv = pkg_dir / "srv" / "GetASpeed.srv"
     set_srv = pkg_dir / "srv" / "SetASpeed.srv"
@@ -579,6 +578,8 @@ B.Level:
 def test_ros2_topics_file_includes_only_matching(tmp_path):
     """
     --topics-file loads include patterns; comments with '#' are ignored.
+    --file formats which are supported are `Yaml` and `txt` files.
+    --`txt` files support only one topic per line.
     """
     vspec = """\
 A:
@@ -701,8 +702,8 @@ def test_cli_entrypoint_smoke():
             "Install exporter package with entry points (e.g., pip install -e .) to enable this smoke test."
         )
 
-    # Minimal sanity: help text should contain 'Export a VSS model' (from click help)
-    assert "Export a VSS model" in (cp.stdout or "") + (cp.stderr or "")
+    # Minimal sanity: help text should contain 'Export a ROS2 Interface' (from click help)
+    assert "Export a ROS2 Interface" in (cp.stdout or "") + (cp.stderr or "")
 
 
 # ------------- bool datatype conversion output test -------------

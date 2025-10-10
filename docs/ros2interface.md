@@ -1,10 +1,8 @@
 
-# Vspec ROS Exporter
+# ROS 2 Interface Exporter (`ros2interface`)
 
-Exports a VSS model to a ROS 2 interface package.
-
-## What this exporter is about?
-This exporter takes VSS `Vspec` file as a source and it generates `.msg` files (per leaf or aggregated by parent branch) and optional `.srv` files for Get/Set operations. This exporter plugs into the `vspec export` CLI like other vss-tools exporters. For generic exporter usage and common arguments, see the `vspec` documentation.
+Export a VSS model to a ROS 2 interface package: generates `.msg` files (per leaf or aggregated by parent branch) and optional `.srv` files for Get/Set operations.
+This exporter plugs into the `vspec export` CLI like other vss-tools exporters. For generic exporter usage and common arguments, see the `vspec` documentation.
 
 ## Generated Output Structure
 ```
@@ -105,13 +103,13 @@ This file is Generated when `--srv none|get|set|both` parameter is used. The out
 
 ```bash
 # Export only Vehicle.Speed as leaf message + get/set services:
-vspec export ros   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_interfaces   --mode leaf   --srv both --srv-use-msg   --topics Vehicle.Speed
+vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_interfaces   --mode leaf   --srv both --srv-use-msg   --topics Vehicle.Speed
 
 # Export all *.Speed signals, aggregated by their parent branches:
-vspec export ros   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_agg   --mode aggregate   --srv get   --topics '*.Speed'
+vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_agg   --mode aggregate   --srv get   --topics '*.Speed'
 ```
 ## Usage
 
 ```bash
-vspec export ros   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode aggregate|leaf   --srv none|get|set|both   [--srv-use-msg | --no-srv-use-msg]   [--topics PATTERN ...]   [--exclude-topics PATTERN ...]   [--topics-file patterns.txt]   [--topics-case-insensitive]
+vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode aggregate|leaf   --srv none|get|set|both   [--srv-use-msg | --no-srv-use-msg]   [--topics PATTERN ...]   [--exclude-topics PATTERN ...]   [--topics-file patterns.txt]   [--topics-case-insensitive]
 ```

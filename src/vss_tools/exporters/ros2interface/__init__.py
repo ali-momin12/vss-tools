@@ -40,7 +40,7 @@ Key CLI options (existing remain)
 Examples
 --------
 # Export only Vehicle.Speed as leaf message + get/set services:
-vspec export ros \
+vspec export ros2interface \
   --vspec spec/VehicleSignalSpecification.vspec \
   -I spec \
   --output ./out \
@@ -50,7 +50,7 @@ vspec export ros \
   --topics Vehicle.Speed
 
 # Export all *.Speed signals, aggregated by their parent branches:
-vspec export ros \
+vspec export ros2interface \
   --vspec spec/VehicleSignalSpecification.vspec \
   -I spec \
   --output ./out \
@@ -379,7 +379,7 @@ def generate_msgs_aggregate(
     for node, data in items:
         pfqn = direct_parent_fqn(node)
         if pfqn is None:
-            pfqn = node
+            pfqn = node.get_fqn()  # unlikely, but fallback to self
         buckets.setdefault(pfqn, []).append((node, data))
 
     outputs: list[Tuple[str, str, list[dict[str, str]]]] = []
@@ -465,13 +465,7 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], u
 # ---------------------------------------------- CLI ----------------------------------------
 
 
-@click.command(
-    help="This exporter takes VSS `Vspec` file as a source and it "
-    "generates `.msg` files (per leaf or aggregated by parent branch)"
-    "and optional `.srv` files for Get/Set operations. "
-    "This exporter plugs into the `vspec export` CLI like other vss-tools exporters."
-    "For generic exporter usage and common arguments, see the `vspec` documentation."
-)
+@click.command(help="Export a VSS model to a ROS 2 interface package (.msg + optional .srv).")
 @clo.vspec_opt
 @clo.include_dirs_opt
 @clo.units_opt
@@ -501,9 +495,7 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], u
 )
 @click.option(
     "--srv",
-    type=click.Choice(["none", "get", "set", "both"], case_sensitive=False),
-    default="none",
-    show_default=True,
+    type=click.Choice(["get", "set", "both"], case_sensitive=False),
     help="Also generate .srv files: Get<Msg>.srv, Set<Msg>.srv, or both.",
 )
 @click.option(
@@ -529,7 +521,7 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], u
 @click.option(
     "--topics-file",
     type=click.Path(path_type=Path, dir_okay=False, exists=True),
-    help="File with one pattern per line (supports comments with '#').",
+    help="Yaml file format and simple text file format with one topic per line (supports comments with '#').",
 )
 @click.option(
     "--topics-case-insensitive/--topics-case-sensitive",
