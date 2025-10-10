@@ -26,7 +26,7 @@ vspec export --help
 | samm          Export as Eclipse Semantic Modeling Framework (ESMF) - Semantic Aspect Meta Model (SAMM) - .ttl files. |
 │ yaml          Export as YAML.                                                                                        │
 │ tree          Export as Tree.                                                                                        |
-| ros Export as .msg and .srv files                                                                          │
+| ros2interface Export as .msg and .srv files                                                                          │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -58,7 +58,7 @@ vspec export json --vspec spec/VehicleSignalSpecification.vspec --output vss.jso
 - [protobuf](./protobuf.md)
 - [samm](./samm.md)
 - [tree](./tree.md)
-- [ros](./ros2interface.md)
+- [ros2interface](./ros2interface.md)
 
 ## Argument Explanations
 

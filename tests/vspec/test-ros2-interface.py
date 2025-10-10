@@ -702,8 +702,8 @@ def test_cli_entrypoint_smoke():
             "Install exporter package with entry points (e.g., pip install -e .) to enable this smoke test."
         )
 
-    # Minimal sanity: help text should contain 'Export a ROS2 Interface' (from click help)
-    assert "Export a ROS2 Interface" in (cp.stdout or "") + (cp.stderr or "")
+    # Minimal sanity: help text should contain 'Export a VSS model to a ROS 2 interface' (from click help)
+    assert "Export a VSS model to a ROS 2 interface" in (cp.stdout or "") + (cp.stderr or "")
 
 
 # ------------- bool datatype conversion output test -------------
