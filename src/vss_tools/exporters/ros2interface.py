@@ -34,7 +34,7 @@ Patterns can be specified as:
 Key CLI options (existing remain)
 ---------------------------------
 --mode aggregate|leaf
---srv none|get|set|both
+--srv get|set|both
 --srv-use-msg / --no-srv-use-msg
 
 Examples
