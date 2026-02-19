@@ -63,6 +63,7 @@ vspec export ros2interface \
 from __future__ import annotations
 
 import re
+from enum import Enum
 from fnmatch import fnmatchcase
 from pathlib import Path
 from typing import Callable, Iterable, Optional, Sequence, Tuple
@@ -366,11 +367,33 @@ def build_field_from_leaf(leaf_node: VSSNode, data) -> dict[str, str]:
     return {"type": ros_type, "name": name, "comment": comment}
 
 
+def build_field_from_leaf_with_name(leaf_node: VSSNode, data, field_name: str | None = None) -> dict[str, str]:
+    field = build_field_from_leaf(leaf_node, data)
+    if field_name:
+        field["name"] = field_name
+    return field
+
+
+def build_timestamp_fields(timestamp_mode: str) -> list[dict[str, str]]:
+    if timestamp_mode == "struct":
+        return [
+            {"type": "int32", "name": "timestamp_sec", "comment": "Seconds since epoch"},
+            {
+                "type": "uint32",
+                "name": "timestamp_nanosec",
+                "comment": "Nanoseconds [0, 999999999]",
+            },
+        ]
+    return [{"type": "uint64", "name": "timestamp"}]
+
+
 # ------------------------- Generates msg files with aggregated topics of a parent branch --------------------------
 
 
 def generate_msgs_aggregate(
-    root: VSSNode, preselected: Optional[Sequence[Tuple[VSSNode, object]]] = None
+    root: VSSNode,
+    preselected: Optional[Sequence[Tuple[VSSNode, object]]] = None,
+    timestamp_mode: str = "simple",
 ) -> list[Tuple[str, str, list[dict[str, str]]]]:
     # returns list[(msg_filename, content, fields)]
     items = list(preselected) if preselected is not None else list(iter_leaves(root))
@@ -388,7 +411,7 @@ def generate_msgs_aggregate(
         fields: list[dict[str, str]] = [
             build_field_from_leaf(n, d) for n, d in sorted(leaf_items, key=lambda x: x[0].get_fqn())
         ]
-        fields = [{"type": "uint64", "name": "timestamp"}] + fields
+        fields = build_timestamp_fields(timestamp_mode) + fields
         header_comment = [f"Parent branch: {pfqn}"]
 
         allowed_values: list[str] = []
@@ -411,21 +434,24 @@ def generate_msgs_aggregate(
 
 
 def generate_msgs_leaf(
-    root: VSSNode, preselected: Optional[Sequence[Tuple[VSSNode, object]]] = None
+    root: VSSNode,
+    preselected: Optional[Sequence[Tuple[VSSNode, object]]] = None,
+    timestamp_mode: str = "simple",
 ) -> list[Tuple[str, str, list[dict[str, str]]]]:
     outputs: list[Tuple[str, str, list[dict[str, str]]]] = []
     items = list(preselected) if preselected is not None else list(iter_leaves(root))
 
     for node, data in items:
         fqn = node.get_fqn()
-        field = build_field_from_leaf(node, data)
+        field_name = "value" if timestamp_mode == "struct" else None
+        field = build_field_from_leaf_with_name(node, data, field_name=field_name)
         header_comment = [f"Signal: {fqn}"]
         allowed_values = getattr(data, "allowed", None)
         enum_comment = None
         if allowed_values:
             enum_comment = ["Allowed values: " + ", ".join(map(str, list(allowed_values)))]
         msg_name = to_pascal(node.get_fqn("_")) + ".msg"
-        base_fields = [{"type": "uint64", "name": "timestamp"}, field]
+        base_fields = build_timestamp_fields(timestamp_mode) + [field]
         content = render_msg_file(fqn, base_fields, header_comment, enum_comment)
         outputs.append((msg_name, content, base_fields))
     return outputs
@@ -439,17 +465,116 @@ def srv_names_for_msg(msg_filename: str) -> Tuple[str, str, str]:
     return base, f"Get{base}.srv", f"Set{base}.srv"
 
 
-def render_get_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], use_msg: bool) -> str:
+def render_get_srv(
+    pkg_name: str,
+    msg_name: str,
+    fields: list[dict[str, str]],
+    use_msg: bool,
+    timestamp_mode: str = "simple",
+) -> str:
     header = [f"Service: Get{msg_name}", "Returns latest values for this group."]
-    request = [
-        "uint64 start_time_ms",
-        "uint64 end_time_ms",
-    ]
+    if timestamp_mode == "struct":
+        request = [
+            "int32 start_time_sec",
+            "uint32 start_time_nanosec",
+            "int32 end_time_sec",
+            "uint32 end_time_nanosec",
+        ]
+    else:
+        request = [
+            "uint64 start_time_ms",
+            "uint64 end_time_ms",
+        ]
     if use_msg:
         response = [f"{msg_name}[] data"]
     else:
         response = [f"{f['type']} {f['name']} # {f.get('comment', '')}".rstrip() for f in fields]
     return render_srv_file(request, response, header)
+
+
+def _to_yaml_safe(value: object) -> object:
+    if isinstance(value, Enum):
+        return _to_yaml_safe(value.value)
+    if hasattr(value, "value"):
+        return _to_yaml_safe(getattr(value, "value"))
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dict):
+        return {str(k): _to_yaml_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_to_yaml_safe(v) for v in value]
+    if isinstance(value, Path):
+        return str(value)
+    return str(value)
+
+
+def write_transformed_struct_vspec(output_vspec: Path, leaves: Sequence[Tuple[VSSNode, object]]) -> None:
+    entries: dict[str, dict[str, object]] = {
+        "Time_t": {
+            "type": "struct",
+            "description": "point in time",
+        },
+        "Time_t.t_sec": {
+            "type": "sensor",
+            "datatype": "int64",
+            "description": "seconds (may use sentinel negative values)",
+        },
+        "Time_t.t_nanosec": {
+            "type": "sensor",
+            "datatype": "uint32",
+            "description": "nanoseconds in [0, 1e9]",
+        },
+    }
+
+    for node, data in sorted(leaves, key=lambda x: x[0].get_fqn()):
+        fqn = node.get_fqn()
+        parts = fqn.split(".")
+
+        for idx in range(1, len(parts)):
+            branch_fqn = ".".join(parts[:idx])
+            entries.setdefault(branch_fqn, {"type": "branch"})
+
+        base_desc = _to_yaml_safe(getattr(data, "description", None))
+        wrapper_desc = f"{base_desc} structure" if isinstance(base_desc, str) and base_desc else f"{fqn} structure"
+
+        entries[fqn] = {
+            "type": "struct",
+            "description": wrapper_desc,
+        }
+        entries[f"{fqn}.time"] = {
+            "type": "struct",
+            "description": "Captures time (seconds + nanoseconds)",
+        }
+        entries[f"{fqn}.time.t_sec"] = {
+            "type": "sensor",
+            "datatype": "int64",
+            "description": "Seconds since epoch",
+        }
+        entries[f"{fqn}.time.t_nanosec"] = {
+            "type": "sensor",
+            "datatype": "uint32",
+            "description": "Time in Nanoseconds",
+        }
+
+        value_node: dict[str, object] = {
+            "type": "sensor",
+            "datatype": _to_yaml_safe(getattr(data, "datatype", "string")),
+        }
+
+        arraysize = getattr(data, "arraysize", None)
+        if arraysize is not None:
+            value_node["arraysize"] = _to_yaml_safe(arraysize)
+
+        for key in ("description", "unit", "min", "max", "allowed"):
+            value = getattr(data, key, None)
+            if value is not None:
+                value_node[key] = _to_yaml_safe(value)
+
+        entries[f"{fqn}.value"] = value_node
+
+    output_vspec.parent.mkdir(parents=True, exist_ok=True)
+    safe_entries = _to_yaml_safe(entries)
+    output_vspec.write_text(yaml.safe_dump(safe_entries, sort_keys=False), encoding="utf-8")
 
 
 def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], use_msg: bool) -> str:
@@ -505,6 +630,13 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], u
     help="Whether services should nest the generated .msg as a field. If disabled, fields are flattened.",
 )
 @click.option(
+    "--timestamp-mode",
+    type=click.Choice(["simple", "struct"], case_sensitive=False),
+    default="simple",
+    show_default=True,
+    help="Timestamp format in generated messages/services.",
+)
+@click.option(
     "--topics",
     multiple=True,
     help=(
@@ -529,6 +661,14 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], u
     show_default=True,
     help="Case-insensitive matching for topic patterns.",
 )
+@click.option(
+    "--output-vspec",
+    type=click.Path(path_type=Path, dir_okay=False),
+    help=(
+        "Optional file path to write a transformed VSS model where each selected signal "
+        "is expanded to a struct with time.t_sec/time.t_nanosec/value fields and a shared Time_t schema."
+    ),
+)
 def cli(
     vspec: Path,
     include_dirs: Tuple[Path, ...],
@@ -542,10 +682,12 @@ def cli(
     mode: str,
     srv: str,
     srv_use_msg: bool,
+    timestamp_mode: str,
     topics: Tuple[str, ...],
     exclude_topics: Tuple[str, ...],
     topics_file: Optional[Path],
     topics_case_insensitive: bool,
+    output_vspec: Optional[Path],
 ):
     log.info("Loading VSS…")
     root = load_vspec_tree(
@@ -588,10 +730,24 @@ def cli(
 
     # Build messages from VSS (optionally using the preselected leaves)
     log.info("Generating ROS 2 .msg files… mode=%s", mode)
+    timestamp_mode = timestamp_mode.lower()
     if mode.lower() == "leaf":
-        msgs = generate_msgs_leaf(root, preselected=preselected)  # list[(fname, content, fields)]
+        msgs = generate_msgs_leaf(
+            root,
+            preselected=preselected,
+            timestamp_mode=timestamp_mode,
+        )  # list[(fname, content, fields)]
     else:
-        msgs = generate_msgs_aggregate(root, preselected=preselected)  # list[(fname, content, fields)]
+        msgs = generate_msgs_aggregate(
+            root,
+            preselected=preselected,
+            timestamp_mode=timestamp_mode,
+        )  # list[(fname, content, fields)]
+
+    selected_leaves_for_output = preselected if preselected is not None else all_leaves
+    if output_vspec:
+        write_transformed_struct_vspec(output_vspec, selected_leaves_for_output)
+        log.info("Wrote transformed VSS model to %s", output_vspec)
 
     # Prepare output dirs
     pkg_dir = output / package_name
@@ -614,7 +770,13 @@ def cli(
             base, get_srv_name, set_srv_name = srv_names_for_msg(fname)
             msg_type_name = base
             if srv.lower() in ("get", "both"):
-                get_content = render_get_srv(package_name, msg_type_name, fields, srv_use_msg)
+                get_content = render_get_srv(
+                    package_name,
+                    msg_type_name,
+                    fields,
+                    srv_use_msg,
+                    timestamp_mode=timestamp_mode,
+                )
                 (srv_dir / get_srv_name).write_text(get_content, encoding="utf-8")
                 srv_rel_paths.append(f"srv/{get_srv_name}")
             if srv.lower() in ("set", "both"):

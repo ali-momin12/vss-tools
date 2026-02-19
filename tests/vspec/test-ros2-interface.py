@@ -1028,3 +1028,113 @@ A.Engine.VIN:
     assert "uint64 timestamp" in text
     assert "string vin" in text
     assert "Engine VIN Number." in text
+
+
+def test_ros2_struct_timestamp_leaf_msg_and_srv(tmp_path):
+    vspec = """\
+A:
+  type: branch
+  description: Branch A.
+A.Speed:
+  type: sensor
+  datatype: float
+  description: Vehicle speed.
+"""
+    pkg_dir = run_ros2_exporter(
+        vspec,
+        tmp_path,
+        mode="leaf",
+        extra_args=["--srv", "both", "--srv-use-msg", "--timestamp-mode", "struct"],
+    )
+
+    msg = pkg_dir / "msg" / "ASpeed.msg"
+    get_srv = pkg_dir / "srv" / "GetASpeed.srv"
+    set_srv = pkg_dir / "srv" / "SetASpeed.srv"
+
+    assert msg.is_file(), f"Missing {msg}"
+    assert get_srv.is_file(), f"Missing {get_srv}"
+    assert set_srv.is_file(), f"Missing {set_srv}"
+
+    msg_text = read_text(msg)
+    get_text = read_text(get_srv)
+    set_text = read_text(set_srv)
+
+    assert "int32 timestamp_sec" in msg_text
+    assert "uint32 timestamp_nanosec" in msg_text
+    assert "float32 value" in msg_text
+    assert "uint64 timestamp" not in msg_text
+
+    assert "int32 start_time_sec" in get_text
+    assert "uint32 start_time_nanosec" in get_text
+    assert "int32 end_time_sec" in get_text
+    assert "uint32 end_time_nanosec" in get_text
+    assert "ASpeed[] data" in get_text
+
+    assert "ASpeed data" in set_text
+    assert "bool success" in set_text
+    assert "string message" in set_text
+
+
+def test_ros2_struct_timestamp_aggregate_mode(tmp_path):
+    vspec = """\
+A:
+  type: branch
+  description: Branch A.
+A.Speed:
+  type: sensor
+  datatype: float
+  description: Vehicle speed.
+A.RPM:
+  type: sensor
+  datatype: uint16
+  description: Engine RPM.
+"""
+    pkg_dir = run_ros2_exporter(vspec, tmp_path, mode="aggregate", extra_args=["--timestamp-mode", "struct"])
+
+    msg = pkg_dir / "msg" / "A.msg"
+    assert msg.is_file(), f"Missing {msg}"
+    text = read_text(msg)
+
+    assert "int32 timestamp_sec" in text
+    assert "uint32 timestamp_nanosec" in text
+    assert "float32 speed" in text
+    assert "uint16 rpm" in text
+    assert "uint64 timestamp" not in text
+
+
+def test_ros2_output_vspec_struct_transform(tmp_path):
+    vspec = """\
+A:
+  type: branch
+  description: Branch A.
+A.Speed:
+  type: sensor
+  datatype: float
+  unit: km/h
+  min: 0
+  max: 260
+  description: Vehicle speed.
+"""
+    transformed = tmp_path / "out" / "transformed.vspec"
+
+    run_ros2_exporter(
+        vspec,
+        tmp_path,
+        mode="leaf",
+        extra_args=["--timestamp-mode", "struct", "--output-vspec", str(transformed)],
+    )
+
+    assert transformed.is_file(), f"Missing {transformed}"
+    text = read_text(transformed)
+
+    assert "Time_t:" in text
+    assert "Time_t.t_sec:" in text
+    assert "Time_t.t_nanosec:" in text
+    assert "A.Speed:" in text
+    assert "A.Speed.time:" in text
+    assert "A.Speed.time.t_sec:" in text
+    assert "A.Speed.time.t_nanosec:" in text
+    assert "A.Speed.value:" in text
+    assert "datatype: int64" in text
+    assert "datatype: uint32" in text
+    assert "datatype: float" in text

@@ -66,6 +66,12 @@ OutputFolder
   - `both`:
     - creates both the Get<MSG>.srv and Set<MSG>.srv files
 - `--srv-use-msg / --no-srv-use-msg`: In services, use the generated message as a nested field (default: `--srv-use-msg`); otherwise flatten fields.
+- `--timestamp-mode {simple, struct}`:
+  - `simple` (default): message timestamp as `uint64 timestamp`; Get request uses `uint64 start_time_ms/end_time_ms`.
+  - `struct`: message timestamp uses `int32 timestamp_sec` + `uint32 timestamp_nanosec`; Get request uses sec/nanosec pairs.
+- `--output-vspec <file>`: Optional path to write a transformed VSS file with:
+  - shared timestamp struct schema: `Time_t`, `Time_t.t_sec`, `Time_t.t_nanosec`
+  - each selected signal converted to a struct: `<Signal>.time.t_sec`, `<Signal>.time.t_nanosec`, `<Signal>.value`
 
 ### Topic/Signal Selection
 
@@ -92,17 +98,19 @@ Following patterns are supported:
 ### Messages (`.msg`)
 
 - `Aggregate` mode
-  one message per direct parent branch. Fields include a leading `uint64 timestamp`, then one field per child leaf.
+  one message per direct parent branch. Fields include a leading timestamp representation (`uint64 timestamp` in `simple`, or `timestamp_sec`/`timestamp_nanosec` in `struct`), then one field per child leaf.
 
 - `Leaf` mode
-  one message per leaf. Fields include `uint64 timestamp` and one field for the leaf value.
+  one message per leaf. Fields include timestamp representation and one field for the leaf value (`value` in `struct` mode).
 
 ### Services (`.srv`)
 
 This file is Generated when `--srv get|set|both` parameter is used. The output files are:
 
 - `Get<Msg>.srv`
-  - Request: `uint64 start_time_ms`, `uint64 end_time_ms`
+  - Request:
+    - `simple`: `uint64 start_time_ms`, `uint64 end_time_ms`
+    - `struct`: `int32 start_time_sec`, `uint32 start_time_nanosec`, `int32 end_time_sec`, `uint32 end_time_nanosec`
   - Response: `Msg[] data` or flattened fields
 
 - `Set<Msg>.srv`
@@ -117,9 +125,15 @@ vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I 
 
 # Export all *.Speed signals, aggregated by their parent branches:
 vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_speed_agg   --mode aggregate   --srv get   --topics '*.Speed'
+
+# Export struct-based timestamp fields
+vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode leaf   --srv both   --timestamp-mode struct
+
+# Emit transformed VSS (shared Time_t + <Signal>.time/<Signal>.value)
+vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode leaf   --timestamp-mode struct   --output-vspec ./out/transformed.vspec
 ```
 ## Usage
 
 ```bash
-vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode aggregate|leaf   --srv get|set|both   [--srv-use-msg | --no-srv-use-msg]   [--topics PATTERN ...]   [--exclude-topics PATTERN ...]   [--topics-file patterns.txt]   [--topics-case-insensitive]
+vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode aggregate|leaf   --srv get|set|both   [--srv-use-msg | --no-srv-use-msg]   [--timestamp-mode simple|struct]   [--topics PATTERN ...]   [--exclude-topics PATTERN ...]   [--topics-file patterns.txt]   [--topics-case-insensitive]   [--output-vspec transformed.vspec]
 ```
