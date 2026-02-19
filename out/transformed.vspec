@@ -1,0 +1,221 @@
+Time_t:
+  type: struct
+  description: point in time
+Time_t.t_sec:
+  type: sensor
+  datatype: int64
+  description: seconds (may use sentinel negative values)
+Time_t.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: nanoseconds in [0, 1e9]
+A:
+  type: branch
+A.Double:
+  type: struct
+  description: A double. structure
+A.Double.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.Double.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.Double.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.Double.value:
+  type: sensor
+  datatype: double
+  description: A double.
+  unit: km
+A.Float:
+  type: struct
+  description: A float. structure
+A.Float.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.Float.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.Float.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.Float.value:
+  type: sensor
+  datatype: float
+  description: A float.
+  unit: km
+A.Int16:
+  type: struct
+  description: An int16. structure
+A.Int16.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.Int16.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.Int16.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.Int16.value:
+  type: sensor
+  datatype: int16
+  description: An int16.
+  unit: km
+A.Int32:
+  type: struct
+  description: An int32 structure
+A.Int32.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.Int32.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.Int32.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.Int32.value:
+  type: sensor
+  datatype: int32
+  description: An int32
+  unit: km
+A.Int64:
+  type: struct
+  description: An int64 structure
+A.Int64.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.Int64.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.Int64.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.Int64.value:
+  type: sensor
+  datatype: int64
+  description: An int64
+  unit: km
+A.Int8:
+  type: struct
+  description: An int8. structure
+A.Int8.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.Int8.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.Int8.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.Int8.value:
+  type: sensor
+  datatype: int8
+  description: An int8.
+  unit: km
+A.IsBoolean:
+  type: struct
+  description: A boolean structure
+A.IsBoolean.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.IsBoolean.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.IsBoolean.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.IsBoolean.value:
+  type: sensor
+  datatype: boolean
+  description: A boolean
+A.UInt16:
+  type: struct
+  description: A uint16. structure
+A.UInt16.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.UInt16.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.UInt16.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.UInt16.value:
+  type: sensor
+  datatype: uint16
+  description: A uint16.
+  unit: km
+A.UInt32:
+  type: struct
+  description: A uint32. structure
+A.UInt32.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.UInt32.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.UInt32.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.UInt32.value:
+  type: sensor
+  datatype: uint16
+  description: A uint32.
+  unit: km
+A.UInt64:
+  type: struct
+  description: A uint64. structure
+A.UInt64.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.UInt64.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.UInt64.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.UInt64.value:
+  type: sensor
+  datatype: uint64
+  description: A uint64.
+  unit: km
+A.UInt8:
+  type: struct
+  description: A uint8. structure
+A.UInt8.time:
+  type: struct
+  description: Captures time (seconds + nanoseconds)
+A.UInt8.time.t_sec:
+  type: sensor
+  datatype: int64
+  description: Seconds since epoch
+A.UInt8.time.t_nanosec:
+  type: sensor
+  datatype: uint32
+  description: Time in Nanoseconds
+A.UInt8.value:
+  type: sensor
+  datatype: uint8
+  description: A uint8.
+  unit: km

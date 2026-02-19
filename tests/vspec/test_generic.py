@@ -61,6 +61,7 @@ def run_exporter(directory, exporter, tmp_path):
         cmd += "  --mode aggregate --srv both --expand --srv-use-msg --exclude-topics Z.*"
         cmd += "  --topics-case-sensitive --topics name:Uint16 --topics Uint32"
         cmd += "  --topics *:Float --topics regex:^A\\.Int16\\..*$ --topics Uint32"
+        cmd += "  --timestamp-mode struct   --output-vspec ./out/transformed.vspec --package-name vss_interfaces"
     else:
         cmd += f" --output {output}"
 
