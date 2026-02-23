@@ -573,8 +573,7 @@ def write_transformed_struct_vspec(output_vspec: Path, leaves: Sequence[Tuple[VS
         entries[f"{fqn}.value"] = value_node
 
     output_vspec.parent.mkdir(parents=True, exist_ok=True)
-    safe_entries = _to_yaml_safe(entries)
-    parts = [yaml.safe_dump({k: v}, sort_keys=False).rstrip("\n") for k, v in safe_entries.items()]
+    parts = [yaml.safe_dump({k: _to_yaml_safe(v)}, sort_keys=False).rstrip("\n") for k, v in entries.items()]
     output_vspec.write_text("\n\n".join(parts) + "\n", encoding="utf-8")
 
 
