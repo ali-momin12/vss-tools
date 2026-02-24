@@ -539,7 +539,6 @@ def write_transformed_struct_vspec(output_vspec: Path, leaves: Sequence[Tuple[VS
 
         entries[fqn] = {
             "type": "struct",
-            "description": wrapper_desc,
         }
         entries[f"{fqn}.time"] = {
             "type": "struct",
