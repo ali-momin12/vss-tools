@@ -535,24 +535,21 @@ def write_transformed_struct_vspec(output_vspec: Path, leaves: Sequence[Tuple[VS
             entries.setdefault(branch_fqn, {"type": "branch"})
 
         base_desc = _to_yaml_safe(getattr(data, "description", None))
-        wrapper_desc = f"{base_desc} structure" if isinstance(base_desc, str) and base_desc else f"{fqn} structure"
+        f"{base_desc} structure" if isinstance(base_desc, str) and base_desc else f"{fqn} structure"
 
         entries[fqn] = {
             "type": "struct",
         }
         entries[f"{fqn}.time"] = {
             "type": "struct",
-            "description": "Captures time (seconds + nanoseconds)",
         }
         entries[f"{fqn}.time.t_sec"] = {
             "type": "sensor",
             "datatype": "int64",
-            "description": "Seconds since epoch",
         }
         entries[f"{fqn}.time.t_nanosec"] = {
             "type": "sensor",
             "datatype": "uint32",
-            "description": "Time in Nanoseconds",
         }
 
         value_node: dict[str, object] = {
