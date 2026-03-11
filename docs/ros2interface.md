@@ -68,10 +68,10 @@ OutputFolder
 - `--srv-use-msg / --no-srv-use-msg`: In services, use the generated message as a nested field (default: `--srv-use-msg`); otherwise flatten fields.
 - `--timestamp-mode {simple, struct}`:
   - `simple` (default): message timestamp as `uint64 timestamp`; Get request uses `uint64 start_time_ms/end_time_ms`.
-  - `struct`: message timestamp uses `int32 timestamp_sec` + `uint32 timestamp_nanosec`; Get request uses sec/nanosec pairs.
+  - `struct`: message timestamp uses `int64 timestamp_seconds` + `int64 timestamp_nanoseconds`; Get request uses seconds/nanoseconds pairs.
 - `--output-vspec <file>`: Optional path to write a transformed VSS file with:
-  - shared timestamp struct schema: `Time_t`, `Time_t.t_sec`, `Time_t.t_nanosec`
-  - each selected signal converted to a struct: `<Signal>.time.t_sec`, `<Signal>.time.t_nanosec`, `<Signal>.value`
+  - shared timestamp struct schema: `Timestamp`, `Timestamp.seconds`, `Timestamp.nanoseconds`
+  - each selected signal converted to a struct: `<Signal>.time.seconds`, `<Signal>.time.nanoseconds`, `<Signal>.value`
 
 ### Topic/Signal Selection
 
@@ -98,7 +98,7 @@ Following patterns are supported:
 ### Messages (`.msg`)
 
 - `Aggregate` mode
-  one message per direct parent branch. Fields include a leading timestamp representation (`uint64 timestamp` in `simple`, or `timestamp_sec`/`timestamp_nanosec` in `struct`), then one field per child leaf.
+  one message per direct parent branch. Fields include a leading timestamp representation (`uint64 timestamp` in `simple`, or `timestamp_seconds`/`timestamp_nanoseconds` in `struct`), then one field per child leaf.
 
 - `Leaf` mode
   one message per leaf. Fields include timestamp representation and one field for the leaf value (`value` in `struct` mode).
@@ -110,7 +110,7 @@ This file is Generated when `--srv get|set|both` parameter is used. The output f
 - `Get<Msg>.srv`
   - Request:
     - `simple`: `uint64 start_time_ms`, `uint64 end_time_ms`
-    - `struct`: `int32 start_time_sec`, `uint32 start_time_nanosec`, `int32 end_time_sec`, `uint32 end_time_nanosec`
+    - `struct`: `int64 start_time_seconds`, `int64 start_time_nanoseconds`, `int64 end_time_seconds`, `int64 end_time_nanoseconds`
   - Response: `Msg[] data` or flattened fields
 
 - `Set<Msg>.srv`
