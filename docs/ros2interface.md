@@ -129,9 +129,21 @@ vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I 
 # Export struct-based timestamp fields
 vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode leaf   --srv both   --timestamp-mode struct
 
-# Emit transformed VSS (shared Time_t + <Signal>.time/<Signal>.value)
+# Emit transformed VSS (shared Timestamp{seconds, nanoseconds} + <Signal>.time.seconds/<Signal>.time.nanoseconds/<Signal>.value)
 vspec export ros2interface   --vspec spec/VehicleSignalSpecification.vspec   -I spec   --output ./out   --package-name vss_interfaces   --mode leaf   --timestamp-mode struct   --output-vspec ./out/transformed.vspec
+
+# Emits transformed VSS (shared Timestamp{seconds, nanoseconds} + <Signal>.time.seconds/<Signal>.time.nanoseconds/<Signal>.value)
+# while also taking into account the Timestamp.vspec tree schema.
+# Note: The example below executes assuming following folder structure:
+#└── <parent-project-folder>
+#    ├── vehicle_signal_specification
+#    └── vss-tools
+# Note: if the folder structure varies or differes from what is stated above, the path used in the example below for files and directories is required to be updated.
+
+vspec export ros2interface  --vspec ../vehicle_signal_specification/spec/VehicleSignalSpecification.vspec -I ../vehicle_signal_specification/spec/include --types ../vehicle_signal_specification/spec/VehicleSignalSpecification.vspec   --output ./output   --package-name vss_speed_interfaces  --mode leaf --timestamp-mode struct  --srv both --srv-use-msg  --topics Vehicle.Speed -q ../vehicle_signal_specification/spec/quantities.yaml -u ../vehicle_signal_specification/spec/units.yaml --output-vspec ./out/transformed.vspec
+
 ```
+
 ## Usage
 
 ```bash

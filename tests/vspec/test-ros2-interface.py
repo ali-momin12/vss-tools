@@ -1060,14 +1060,14 @@ A.Speed:
     set_text = read_text(set_srv)
 
     assert "int32 timestamp_sec" in msg_text
-    assert "uint32 timestamp_nanosec" in msg_text
+    assert "int64 timestamp_nanosec" in msg_text
     assert "float32 value" in msg_text
     assert "uint64 timestamp" not in msg_text
 
     assert "int32 start_time_sec" in get_text
-    assert "uint32 start_time_nanosec" in get_text
+    assert "int64 start_time_nanosec" in get_text
     assert "int32 end_time_sec" in get_text
-    assert "uint32 end_time_nanosec" in get_text
+    assert "int64 end_time_nanosec" in get_text
     assert "ASpeed[] data" in get_text
 
     assert "ASpeed data" in set_text
@@ -1096,7 +1096,7 @@ A.RPM:
     text = read_text(msg)
 
     assert "int32 timestamp_sec" in text
-    assert "uint32 timestamp_nanosec" in text
+    assert "int64 timestamp_nanosec" in text
     assert "float32 speed" in text
     assert "uint16 rpm" in text
     assert "uint64 timestamp" not in text
@@ -1136,5 +1136,140 @@ A.Speed:
     assert "A.Speed.time.t_nanosec:" in text
     assert "A.Speed.value:" in text
     assert "datatype: int64" in text
-    assert "datatype: uint32" in text
+    assert "datatype: uint32" not in text
     assert "datatype: float" in text
+
+
+def test_ros2_struct_timestamp_uses_timestamp_vspec_file(tmp_path):
+    vspec = """\
+A:
+  type: branch
+  description: Branch A.
+A.Speed:
+  type: sensor
+  datatype: float
+  description: Vehicle speed.
+"""
+    timestamp_vspec = tmp_path / "Timestamp.vspec"
+    timestamp_vspec.write_text(
+        """\
+Time_t:
+  type: struct
+  description: A point in time
+
+Time_t.t_sec:
+  type: property
+  unit: unix-time
+  datatype: int64
+  description: time measured in seconds
+
+Time_t.t_nanosec:
+  type: property
+  unit: ns
+  datatype: int64
+  description: time measured in nanoseconds
+""",
+        encoding="utf-8",
+    )
+
+    transformed = tmp_path / "out" / "transformed.vspec"
+    pkg_dir = run_ros2_exporter(
+        vspec,
+        tmp_path,
+        mode="leaf",
+        extra_args=[
+            "--timestamp",
+            "struct",
+            "--timestamp-vspec",
+            str(timestamp_vspec),
+            "--srv",
+            "get",
+            "--srv-use-msg",
+            "--output-vspec",
+            str(transformed),
+        ],
+    )
+
+    msg = pkg_dir / "msg" / "ASpeed.msg"
+    srv = pkg_dir / "srv" / "GetASpeed.srv"
+    assert msg.is_file(), f"Missing {msg}"
+    assert srv.is_file(), f"Missing {srv}"
+    assert transformed.is_file(), f"Missing {transformed}"
+
+    msg_text = read_text(msg)
+    srv_text = read_text(srv)
+    transformed_text = read_text(transformed)
+
+    assert "int64 timestamp_sec" in msg_text
+    assert "int64 timestamp_nanosec" in msg_text
+    assert "int32 timestamp_sec" not in msg_text
+    assert "uint32 timestamp_nanosec" not in msg_text
+
+    assert "int64 start_time_sec" in srv_text
+    assert "int64 start_time_nanosec" in srv_text
+    assert "int64 end_time_sec" in srv_text
+    assert "int64 end_time_nanosec" in srv_text
+
+    assert "Time_t.t_sec:" in transformed_text
+    assert "Time_t.t_nanosec:" in transformed_text
+    assert "type: property" in transformed_text
+    assert "unit: unix-time" in transformed_text
+    assert "unit: ns" in transformed_text
+    assert "datatype: int64" in transformed_text
+    assert "A.Speed.time.t_sec:" in transformed_text
+    assert "A.Speed.time.t_nanosec:" in transformed_text
+
+
+def test_ros2_struct_timestamp_auto_detects_from_custom_vspec(tmp_path):
+    # Place Timestamp.vspec in a dedicated include subdirectory so the exporter
+    # auto-detects it via --include-dirs without the tree builder merging it
+    # into the same tree as the signal vspec (which causes MultipleRootsException).
+    include_dir = tmp_path / "includes"
+    include_dir.mkdir()
+    (include_dir / "Timestamp.vspec").write_text(
+        """\
+Timestamp:
+  type: struct
+  description: A point in time.
+
+Timestamp.seconds:
+  type: property
+  datatype: int64
+  unit: unix-time
+  description: Unix epoch seconds.
+
+Timestamp.nanoseconds:
+  type: property
+  datatype: int64
+  min: 0
+  max: 999999999
+  unit: ns
+  description: Nanosecond offset within the second.
+""",
+        encoding="utf-8",
+    )
+
+    vspec = """\
+A:
+  type: branch
+  description: Branch A.
+A.Speed:
+  type: sensor
+  datatype: float
+  description: Vehicle speed.
+"""
+    pkg_dir = run_ros2_exporter(
+        vspec,
+        tmp_path,
+        mode="leaf",
+        extra_args=["--timestamp-mode", "struct", "--include-dirs", str(include_dir)],
+    )
+    msg = pkg_dir / "msg" / "ASpeed.msg"
+    assert msg.is_file(), f"Missing {msg}"
+    text = read_text(msg)
+
+    assert "int64 timestamp_seconds" in text
+    assert "int64 timestamp_nanoseconds" in text
+    assert "int32 timestamp_sec" not in text
+    assert "uint32 timestamp_nanosec" not in text
+    assert "uint64 timestamp" not in text
