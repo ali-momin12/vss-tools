@@ -261,7 +261,7 @@ def test_ros2interface_helper_functions():
     assert "uint8 val" in srv and "uint64 start_time_ms" in srv
 
     srv2 = render_get_srv("pkg", "Msg", fields, use_msg=False, timestamp_mode="struct")
-    assert "int32 start_time_sec" in srv2
+    assert "int64 start_time_sec" in srv2
 
     srv3 = render_set_srv("pkg", "Msg", fields, use_msg=False)
     assert "uint8 val" in srv3
