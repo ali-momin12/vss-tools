@@ -199,7 +199,7 @@ def _extract_timestamp_schema_from_vspec(path: Path) -> TimestampSchema | None:
     if not struct_names:
         return None
 
-    ordered_struct_names = ["Time_t", *[name for name in struct_names if name != "Time_t"]]
+    ordered_struct_names = ["Timestamp", *[name for name in struct_names if name != "Timestamp"]]
     for struct_name in ordered_struct_names:
         if struct_name not in raw:
             continue
@@ -537,10 +537,10 @@ def build_timestamp_fields(
                 for component in timestamp_schema.components
             ]
         return [
-            {"type": "int64", "name": "timestamp_sec", "comment": "Seconds since epoch"},
+            {"type": "int64", "name": "timestamp_seconds", "comment": "Seconds since epoch"},
             {
                 "type": "int64",
-                "name": "timestamp_nanosec",
+                "name": "timestamp_nanoseconds",
                 "comment": "Nanoseconds [0, 999999999]",
             },
         ]
@@ -647,10 +647,10 @@ def render_get_srv(
             ]
         else:
             request = [
-                "int64 start_time_sec",
-                "int64 start_time_nanosec",
-                "int64 end_time_sec",
-                "int64 end_time_nanosec",
+                "int64 start_time_seconds",
+                "int64 start_time_nanoseconds",
+                "int64 end_time_seconds",
+                "int64 end_time_nanoseconds",
             ]
     else:
         request = [
@@ -796,7 +796,7 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], u
     "--timestamp-vspec",
     type=click.Path(path_type=Path, dir_okay=False, exists=True),
     help=(
-        "Optional VSS file containing a timestamp struct definition (e.g., Time_t). "
+        "Optional VSS file containing a timestamp struct definition (e.g., Timestamp). "
         "When --timestamp/--timestamp-mode is 'struct', this schema is used to generate timestamp fields."
     ),
 )
@@ -830,7 +830,7 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], u
     type=click.Path(path_type=Path, dir_okay=False),
     help=(
         "Optional file path to write a transformed VSS model where each selected signal "
-        "is expanded to a struct with time.t_sec/time.t_nanosec/value fields and a shared Time_t schema."
+        "is expanded to a struct with time/value fields where time references the Timestamp struct."
     ),
 )
 def cli(
