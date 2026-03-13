@@ -1137,16 +1137,15 @@ A.Speed:
     assert transformed.is_file(), f"Missing {transformed}"
     text = read_text(transformed)
 
-    assert "Timestamp:" in text
-    assert "Timestamp.seconds:" in text
-    assert "Timestamp.nanoseconds:" in text
+    assert "Timestamp:" not in text
+    assert "Timestamp.seconds:" not in text
+    assert "Timestamp.nanoseconds:" not in text
     assert "A.Speed:" in text
     assert "A.Speed.time:" in text
-    assert "A.Speed.time.seconds:" in text
-    assert "A.Speed.time.nanoseconds:" in text
+    assert "datatype: VehicleDataTypes.Timestamp" in text
+    assert "A.Speed.time.seconds:" not in text
+    assert "A.Speed.time.nanoseconds:" not in text
     assert "A.Speed.value:" in text
-    assert "datatype: int64" in text
-    assert "datatype: uint32" not in text
     assert "datatype: float" in text
 
 
@@ -1222,14 +1221,13 @@ Timestamp.nanoseconds:
     assert "int64 end_time_seconds" in srv_text
     assert "int64 end_time_nanoseconds" in srv_text
 
-    assert "Timestamp.seconds:" in transformed_text
-    assert "Timestamp.nanoseconds:" in transformed_text
     assert "type: property" in transformed_text
-    assert "unit: unix-time" in transformed_text
-    assert "unit: ns" in transformed_text
-    assert "datatype: int64" in transformed_text
-    assert "A.Speed.time.seconds:" in transformed_text
-    assert "A.Speed.time.nanoseconds:" in transformed_text
+    assert "datatype: VehicleDataTypes.Timestamp" in transformed_text
+    assert "A.Speed.time:" in transformed_text
+    assert "A.Speed.time.seconds:" not in transformed_text
+    assert "A.Speed.time.nanoseconds:" not in transformed_text
+    assert "Timestamp.seconds:" not in transformed_text
+    assert "Timestamp.nanoseconds:" not in transformed_text
 
 
 def test_ros2_struct_timestamp_auto_detects_from_custom_vspec(tmp_path):
