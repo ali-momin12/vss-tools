@@ -64,7 +64,7 @@ def run_exporter(directory, exporter, tmp_path):
         cmd += "  --mode aggregate --srv both --expand --srv-use-msg --exclude-topics Z.*"
         cmd += "  --topics-case-sensitive --topics name:Uint16 --topics Uint32"
         cmd += "  --topics *:Float --topics regex:^A\\.Int16\\..*$ --topics Uint32"
-        cmd += "  --timestamp-mode struct   --output-vspec ./out/transformed.vspec --package-name vss_interfaces"
+        cmd += "  --output-vspec ./out/transformed.vspec --package-name vss_interfaces"
     else:
         cmd += f" --output {output}"
 
@@ -121,30 +121,27 @@ def _write_vspec(tmp_path: Path, text: str = _SIMPLE_VSPEC) -> Path:
 def test_ros2interface_leaf_mode_no_srv_use_msg(tmp_path):
     vspec = _write_vspec(tmp_path)
     out = tmp_path / "out"
-    for ts_mode in ("simple", "struct"):
-        subprocess.run(
-            [
-                "vspec",
-                "export",
-                "ros2interface",
-                "-u",
-                str(TEST_UNITS),
-                "-q",
-                str(TEST_QUANT),
-                "--vspec",
-                str(vspec),
-                "--output",
-                str(out / ts_mode),
-                "--mode",
-                "leaf",
-                "--srv",
-                "both",
-                "--no-srv-use-msg",
-                "--timestamp-mode",
-                ts_mode,
-            ],
-            check=True,
-        )
+    subprocess.run(
+        [
+            "vspec",
+            "export",
+            "ros2interface",
+            "-u",
+            str(TEST_UNITS),
+            "-q",
+            str(TEST_QUANT),
+            "--vspec",
+            str(vspec),
+            "--output",
+            str(out),
+            "--mode",
+            "leaf",
+            "--srv",
+            "both",
+            "--no-srv-use-msg",
+        ],
+        check=True,
+    )
 
 
 def test_ros2interface_no_match_warning(tmp_path):
@@ -246,7 +243,7 @@ def test_ros2interface_helper_functions():
 
     assert "Allowed" in render_msg_file("X", [{"type": "uint8", "name": "v", "comment": ""}], [], ["Allowed: a"])
 
-    assert build_timestamp_fields("simple")[0]["type"] == "uint64"
+    assert build_timestamp_fields()[0]["name"] == "timestamp_seconds"
 
     class _E(Enum):
         A = 42
@@ -257,11 +254,8 @@ def test_ros2interface_helper_functions():
     assert isinstance(_to_yaml_safe(object()), str)
 
     fields = [{"type": "uint8", "name": "val", "comment": "desc"}]
-    srv = render_get_srv("pkg", "Msg", fields, use_msg=False, timestamp_mode="simple")
-    assert "uint8 val" in srv and "uint64 start_time_ms" in srv
+    srv = render_get_srv("pkg", "Msg", fields, use_msg=False)
+    assert "uint8 val" in srv and "int64 start_time_seconds" in srv
 
-    srv2 = render_get_srv("pkg", "Msg", fields, use_msg=False, timestamp_mode="struct")
-    assert "int64 start_time_seconds" in srv2
-
-    srv3 = render_set_srv("pkg", "Msg", fields, use_msg=False)
-    assert "uint8 val" in srv3
+    srv2 = render_set_srv("pkg", "Msg", fields, use_msg=False)
+    assert "uint8 val" in srv2

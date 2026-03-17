@@ -171,10 +171,6 @@ def _load_yaml_mapping(path: Path) -> dict[str, object] | None:
     return None
 
 
-def _normalize_timestamp_suffix(component_name: str) -> str:
-    return component_name[2:] if component_name.startswith("t_") else component_name
-
-
 def _timestamp_component_comment(entry: dict[str, object]) -> str:
     desc = entry.get("description")
     unit = entry.get("unit")
@@ -223,11 +219,10 @@ def _extract_timestamp_schema_from_vspec(path: Path) -> TimestampSchema | None:
             except KeyError:
                 continue
 
-            suffix = _normalize_timestamp_suffix(component_name)
             components.append(
                 TimestampComponent(
                     name=component_name,
-                    ros_name=f"timestamp_{suffix}",
+                    ros_name=f"timestamp_{component_name}",
                     ros_type=ros_type,
                     comment=_timestamp_component_comment(value),
                     vspec_entry=dict(value),
@@ -274,14 +269,10 @@ def _candidate_timestamp_vspec_paths(
 
 
 def resolve_timestamp_schema(
-    timestamp_mode: str,
     vspec: Path,
     include_dirs: Tuple[Path, ...],
     timestamp_vspec: Optional[Path],
 ) -> TimestampSchema | None:
-    if timestamp_mode != "struct":
-        return None
-
     for candidate in _candidate_timestamp_vspec_paths(vspec, include_dirs, timestamp_vspec):
         schema = _extract_timestamp_schema_from_vspec(candidate)
         if schema is not None:
@@ -524,27 +515,25 @@ def build_field_from_leaf_with_name(leaf_node: VSSNode, data, field_name: str | 
 
 
 def build_timestamp_fields(
-    timestamp_mode: str, timestamp_schema: TimestampSchema | None = None
+    timestamp_schema: TimestampSchema | None = None,
 ) -> list[dict[str, str]]:
-    if timestamp_mode == "struct":
-        if timestamp_schema and timestamp_schema.components:
-            return [
-                {
-                    "type": component.ros_type,
-                    "name": component.ros_name,
-                    "comment": component.comment,
-                }
-                for component in timestamp_schema.components
-            ]
+    if timestamp_schema and timestamp_schema.components:
         return [
-            {"type": "int64", "name": "timestamp_seconds", "comment": "Seconds since epoch"},
             {
-                "type": "int64",
-                "name": "timestamp_nanoseconds",
-                "comment": "Nanoseconds [0, 999999999]",
-            },
+                "type": component.ros_type,
+                "name": component.ros_name,
+                "comment": component.comment,
+            }
+            for component in timestamp_schema.components
         ]
-    return [{"type": "uint64", "name": "timestamp"}]
+    return [
+        {"type": "int64", "name": "timestamp_seconds", "comment": "Seconds since epoch"},
+        {
+            "type": "int64",
+            "name": "timestamp_nanoseconds",
+            "comment": "Nanoseconds [0, 999999999]",
+        },
+    ]
 
 
 # ------------------------- Generates msg files with aggregated topics of a parent branch --------------------------
@@ -553,7 +542,6 @@ def build_timestamp_fields(
 def generate_msgs_aggregate(
     root: VSSNode,
     preselected: Optional[Sequence[Tuple[VSSNode, object]]] = None,
-    timestamp_mode: str = "simple",
     timestamp_schema: TimestampSchema | None = None,
 ) -> list[Tuple[str, str, list[dict[str, str]]]]:
     # returns list[(msg_filename, content, fields)]
@@ -572,7 +560,7 @@ def generate_msgs_aggregate(
         fields: list[dict[str, str]] = [
             build_field_from_leaf(n, d) for n, d in sorted(leaf_items, key=lambda x: x[0].get_fqn())
         ]
-        fields = build_timestamp_fields(timestamp_mode, timestamp_schema=timestamp_schema) + fields
+        fields = build_timestamp_fields(timestamp_schema=timestamp_schema) + fields
         header_comment = [f"Parent branch: {pfqn}"]
 
         allowed_values: list[str] = []
@@ -597,7 +585,6 @@ def generate_msgs_aggregate(
 def generate_msgs_leaf(
     root: VSSNode,
     preselected: Optional[Sequence[Tuple[VSSNode, object]]] = None,
-    timestamp_mode: str = "simple",
     timestamp_schema: TimestampSchema | None = None,
 ) -> list[Tuple[str, str, list[dict[str, str]]]]:
     outputs: list[Tuple[str, str, list[dict[str, str]]]] = []
@@ -605,15 +592,14 @@ def generate_msgs_leaf(
 
     for node, data in items:
         fqn = node.get_fqn()
-        field_name = "value" if timestamp_mode == "struct" else None
-        field = build_field_from_leaf_with_name(node, data, field_name=field_name)
+        field = build_field_from_leaf_with_name(node, data, field_name="value")
         header_comment = [f"Signal: {fqn}"]
         allowed_values = getattr(data, "allowed", None)
         enum_comment = None
         if allowed_values:
             enum_comment = ["Allowed values: " + ", ".join(map(str, list(allowed_values)))]
         msg_name = to_pascal(node.get_fqn("_")) + ".msg"
-        base_fields = build_timestamp_fields(timestamp_mode, timestamp_schema=timestamp_schema) + [field]
+        base_fields = build_timestamp_fields(timestamp_schema=timestamp_schema) + [field]
         content = render_msg_file(fqn, base_fields, header_comment, enum_comment)
         outputs.append((msg_name, content, base_fields))
     return outputs
@@ -632,30 +618,23 @@ def render_get_srv(
     msg_name: str,
     fields: list[dict[str, str]],
     use_msg: bool,
-    timestamp_mode: str = "simple",
     timestamp_schema: TimestampSchema | None = None,
 ) -> str:
     header = [f"Service: Get{msg_name}", "Returns latest values for this group."]
-    if timestamp_mode == "struct":
-        if timestamp_schema and timestamp_schema.components:
-            request = [
-                f"{component.ros_type} start_time_{component.ros_name.removeprefix('timestamp_')}"
-                for component in timestamp_schema.components
-            ] + [
-                f"{component.ros_type} end_time_{component.ros_name.removeprefix('timestamp_')}"
-                for component in timestamp_schema.components
-            ]
-        else:
-            request = [
-                "int64 start_time_seconds",
-                "int64 start_time_nanoseconds",
-                "int64 end_time_seconds",
-                "int64 end_time_nanoseconds",
-            ]
+    if timestamp_schema and timestamp_schema.components:
+        request = [
+            f"{component.ros_type} start_time_{component.ros_name.removeprefix('timestamp_')}"
+            for component in timestamp_schema.components
+        ] + [
+            f"{component.ros_type} end_time_{component.ros_name.removeprefix('timestamp_')}"
+            for component in timestamp_schema.components
+        ]
     else:
         request = [
-            "uint64 start_time_ms",
-            "uint64 end_time_ms",
+            "int64 start_time_seconds",
+            "int64 start_time_nanoseconds",
+            "int64 end_time_seconds",
+            "int64 end_time_nanoseconds",
         ]
     if use_msg:
         response = [f"{msg_name}[] data"]
@@ -785,19 +764,11 @@ def render_set_srv(pkg_name: str, msg_name: str, fields: list[dict[str, str]], u
     help="Whether services should nest the generated .msg as a field. If disabled, fields are flattened.",
 )
 @click.option(
-    "--timestamp-mode",
-    "--timestamp",
-    type=click.Choice(["simple", "struct"], case_sensitive=False),
-    default="simple",
-    show_default=True,
-    help="Timestamp format in generated messages/services.",
-)
-@click.option(
     "--timestamp-vspec",
     type=click.Path(path_type=Path, dir_okay=False, exists=True),
     help=(
         "Optional VSS file containing a timestamp struct definition (e.g., Timestamp). "
-        "When --timestamp/--timestamp-mode is 'struct', this schema is used to generate timestamp fields."
+        "When provided, the schema defined in this file overrides the auto-detected timestamp fields."
     ),
 )
 @click.option(
@@ -846,7 +817,6 @@ def cli(
     mode: str,
     srv: str,
     srv_use_msg: bool,
-    timestamp_mode: str,
     timestamp_vspec: Optional[Path],
     topics: Tuple[str, ...],
     exclude_topics: Tuple[str, ...],
@@ -895,28 +865,24 @@ def cli(
 
     # Build messages from VSS (optionally using the preselected leaves)
     log.info("Generating ROS 2 .msg files… mode=%s", mode)
-    timestamp_mode = timestamp_mode.lower()
     timestamp_schema = resolve_timestamp_schema(
-        timestamp_mode=timestamp_mode,
         vspec=vspec,
         include_dirs=include_dirs,
         timestamp_vspec=timestamp_vspec,
     )
-    if timestamp_mode == "struct" and timestamp_schema is None:
+    if timestamp_schema is None:
         log.info("No timestamp schema file found; using built-in struct timestamp defaults.")
 
     if mode.lower() == "leaf":
         msgs = generate_msgs_leaf(
             root,
             preselected=preselected,
-            timestamp_mode=timestamp_mode,
             timestamp_schema=timestamp_schema,
         )  # list[(fname, content, fields)]
     else:
         msgs = generate_msgs_aggregate(
             root,
             preselected=preselected,
-            timestamp_mode=timestamp_mode,
             timestamp_schema=timestamp_schema,
         )  # list[(fname, content, fields)]
 
@@ -951,7 +917,6 @@ def cli(
                     msg_type_name,
                     fields,
                     srv_use_msg,
-                    timestamp_mode=timestamp_mode,
                     timestamp_schema=timestamp_schema,
                 )
                 (srv_dir / get_srv_name).write_text(get_content, encoding="utf-8")
