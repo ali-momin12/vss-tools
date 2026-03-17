@@ -67,10 +67,7 @@ OutputFolder
     - creates both the Get<MSG>.srv and Set<MSG>.srv files
 - `--srv-use-msg / --no-srv-use-msg`: In services, use the generated message as a nested field (default: `--srv-use-msg`); otherwise flatten fields.
 - `--timestamp-vspec <file>`: Optional VSS file containing a custom `Timestamp` struct definition. When provided, its schema overrides the auto-detected timestamp fields in `.msg` and `.srv` files. If omitted, the exporter auto-detects a `Timestamp` struct from the vspec include path or falls back to built-in defaults (`int64 timestamp_seconds` + `int64 timestamp_nanoseconds`).
-- `--output-vspec <file>`: Optional path to write a transformed VSS model where each selected signal is converted to a struct with:
-  - `<Signal>`: `type: struct`
-  - `<Signal>.time`: `type: property`, `datatype: VehicleDataTypes.Timestamp` — references the shared canonical timestamp type declared in `VehicleDataTypes.vspec`.
-  - `<Signal>.value`: carries the original signal datatype, unit, min/max, and description.
+- `--output-vspec <file>`: Optional path to write a transformed VSS model alongside the ROS 2 package. See [VSS with Timestamp](#transformed-vss-vspec----output-vspec) in the Output section.
 
 ### Topic/Signal Selection
 
