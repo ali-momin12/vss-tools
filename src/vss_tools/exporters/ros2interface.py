@@ -514,9 +514,7 @@ def build_field_from_leaf_with_name(leaf_node: VSSNode, data, field_name: str | 
     return field
 
 
-def build_timestamp_fields(
-    timestamp_schema: TimestampSchema | None = None,
-) -> list[dict[str, str]]:
+def build_timestamp_fields(timestamp_schema: TimestampSchema | None = None) -> list[dict[str, str]]:
     if timestamp_schema and timestamp_schema.components:
         return [
             {

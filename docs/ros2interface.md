@@ -33,7 +33,7 @@ OutputFolder
 
 ## Datatypes mapping between VSS and ROS 2 Interface
 
-| VSS    | ROS 2           |
+| VSS    | ROS 2          |
 |--------|----------------|
 | boolean| bool           |
 | uint8  | uint8          |
@@ -150,12 +150,12 @@ Vehicle.Speed.value:
 ```
 
 The `VehicleDataTypes.Timestamp` struct (declared in `VehicleDataTypes.vspec` / `spec/include/Timestamp.vspec`) is **not** re-emitted in the output — it is expected to already be part of the VSS model.
-```
 
 ## Examples
 
+- Export only Vehicle.Speed as leaf message + get/set services:
+
 ```bash
-# Export only Vehicle.Speed as leaf message + get/set services:
 vspec export ros2interface \
   --vspec spec/VehicleSignalSpecification.vspec \
   -I spec \
@@ -165,7 +165,10 @@ vspec export ros2interface \
   --srv both --srv-use-msg \
   --topics Vehicle.Speed
 
-# Export all *.Speed signals, aggregated by their parent branches:
+```
+- Export all *.Speed signals, aggregated by their parent branches:
+
+```bash
 vspec export ros2interface \
   --vspec spec/VehicleSignalSpecification.vspec \
   -I spec \
@@ -174,8 +177,10 @@ vspec export ros2interface \
   --mode aggregate \
   --srv get \
   --topics '*.Speed'
+```
+- Export with a custom Timestamp.vspec schema:
 
-# Export with a custom Timestamp.vspec schema:
+```bash
 vspec export ros2interface \
   --vspec spec/VehicleSignalSpecification.vspec \
   -I spec \
@@ -184,11 +189,13 @@ vspec export ros2interface \
   --mode leaf \
   --srv both --srv-use-msg \
   --timestamp-vspec path/to/Timestamp.vspec
+```
+- Exports and writes a transformed VSS model.
+  - Each signal becomes <Signal>.time (datatype: VehicleDataTypes.Timestamp)
+  - and <Signal>.value carrying the original datatype.
+  - VehicleDataTypes.Timestamp is NOT re-emitted — it must already exist in the VSS model.
 
-# Export and write a transformed VSS model.
-# Each signal becomes <Signal>.time (datatype: VehicleDataTypes.Timestamp)
-# and <Signal>.value carrying the original datatype.
-# VehicleDataTypes.Timestamp is NOT re-emitted — it must already exist in the VSS model.
+```bash
 vspec export ros2interface \
   --vspec spec/VehicleSignalSpecification.vspec \
   -I spec \
@@ -200,13 +207,15 @@ vspec export ros2interface \
 
 **Full example using the `vehicle_signal_specification` repo side-by-side with `vss-tools`:**
 
-> Assumes the following folder layout:
+Assumes the following folder layout:
+
 > ```
 > <parent-folder>/
 > ├── vehicle_signal_specification/
 > └── vss-tools/
 > ```
-> Adjust paths accordingly if your layout differs.
+
+Adjust paths accordingly if your layout differs.
 
 ```bash
 vspec export ros2interface \
