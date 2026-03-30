@@ -263,5 +263,6 @@ vspec export ros2interface \
   [--exclude-topics PATTERN ...] \
   [--topics-file patterns.txt] \
   [--topics-case-insensitive] \
-  [--output-vspec transformed.vspec]
+  [--output-vspec transformed.vspec] \
+  [--types VehicleDataTypes.vspec]
 ```
