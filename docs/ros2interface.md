@@ -253,6 +253,7 @@ vspec export ros2interface \
 vspec export ros2interface \
   --vspec spec/VehicleSignalSpecification.vspec \
   -I spec \
+  --types spec/VehicleDataTypes.vspec \
   --output ./out \
   --package-name vss_interfaces \
   --mode aggregate|leaf \
@@ -263,6 +264,5 @@ vspec export ros2interface \
   [--exclude-topics PATTERN ...] \
   [--topics-file patterns.txt] \
   [--topics-case-insensitive] \
-  [--output-vspec transformed.vspec] \
-  [--types VehicleDataTypes.vspec]
+  [--output-vspec transformed.vspec]
 ```
